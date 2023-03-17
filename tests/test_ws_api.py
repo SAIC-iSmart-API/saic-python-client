@@ -12,7 +12,8 @@ from saic_client_tosate.ota_v2_1.data_model import OtaRvmVehicleStatusResp25857,
     RvsWgs84Point, Timestamp4Short, RvsBasicStatus25857
 from saic_client_tosate.ota_v3_0.Message import MessageBodyV30, MessageV30, MessageCoderV30
 from saic_client_tosate.ota_v3_0.data_model import OtaChrgMangDataResp, RvsChargingStatus
-from saic_client_tosate.ws_api import SaicApi
+
+from saic_api import SaicApi
 
 TOKEN = '99X9999X-90XX-99X9-99X9-9XX9XX0X9X9XXX9X'
 UID = '00000000000000000000000000000000000090000000099999'
