@@ -43,25 +43,6 @@ FIELD_MCC_NETWORK = 'mccNetwork'
 FIELD_SIGNAL_STRENGTH = 'signalStrength'
 
 
-class Configuration:
-    def __init__(self):
-        self.saic_user = ''
-        self.saic_password = ''
-        self.saic_uri = ''
-        self.abrp_token_map = {}
-        self.abrp_api_key = ''
-        self.mqtt_host = ''
-        self.mqtt_port = -1
-        self.mqtt_transport_protocol = ''
-        self.mqtt_user = ''
-        self.mqtt_password = ''
-        self.mqtt_topic = ''
-        self.openwb_topic = ''
-        self.anonymized_publishing = False
-        self.inactive_vehicle_state_refresh_interval = 900  # in seconds
-        self.messages_request_interval = 5  # in seconds
-
-
 class Header:
     def __init__(self):
         self.protocol_version = None

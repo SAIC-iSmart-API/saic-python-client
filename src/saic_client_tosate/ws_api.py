@@ -1,36 +1,36 @@
 import datetime
 import hashlib
+import logging
 import time
 import urllib.parse
 from typing import cast
 
 import requests as requests
 
-from saic_client_tosate.publisher import Publisher
-from saic_client_tosate.common_model import Configuration, MessageV2, MessageBodyV2, Header
+from saic_client_tosate.common_model import MessageV2, MessageBodyV2, Header
 from saic_client_tosate.ota_v1_1.Message import MessageCoderV11
 from saic_client_tosate.ota_v1_1.data_model import VinInfo, MpUserLoggingInReq, MpUserLoggingInRsp, AlarmSwitchReq, \
     MpAlarmSettingType, AlarmSwitch, MessageBodyV11, MessageV11, MessageListReq, StartEndNumber, MessageListResp, \
     Timestamp
 from saic_client_tosate.ota_v2_1.Message import MessageCoderV21
-from saic_client_tosate.ota_v2_1.data_model import OtaRvmVehicleStatusReq, OtaRvmVehicleStatusResp25857, OtaRvcReq, RvcReqParam
+from saic_client_tosate.ota_v2_1.data_model import OtaRvmVehicleStatusReq, OtaRvmVehicleStatusResp25857, OtaRvcReq,\
+    RvcReqParam
 from saic_client_tosate.ota_v3_0.Message import MessageCoderV30, MessageV30, MessageBodyV30
 from saic_client_tosate.ota_v3_0.data_model import OtaChrgMangDataResp
 
 UID_INIT = '0000000000000000000000000000000000000000000000000#'
+logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
 
 
 class AbrpApi:
-    def __init__(self, configuration: Configuration, vin_info: VinInfo) -> None:
-        self.configuration = configuration
-        self.vin_info = vin_info
+    def __init__(self, abrp_api_key: str, abrp_user_token: str) -> None:
+        self.abrp_api_key = abrp_api_key
+        self.abrp_user_token = abrp_user_token
 
     def update_abrp(self, vehicle_status: OtaRvmVehicleStatusResp25857, charge_status: OtaChrgMangDataResp):
-        # TODO create MQTT message
-        abrp_user_token = self.configuration.abrp_token_map.get(self.vin_info.vin)
         if (
-                self.configuration.abrp_api_key is not None
-                and abrp_user_token is not None
+                self.abrp_api_key is not None
+                and self.abrp_user_token is not None
                 and vehicle_status is not None
                 and vehicle_status.get_gps_position() is not None
                 and vehicle_status.get_gps_position().get_way_point() is not None
@@ -66,18 +66,19 @@ class AbrpApi:
                 data['est_battery_range'] = range_elec / 10.0
 
             tlm_response = requests.get(tlm_send_url, params={
-                'api_key': self.configuration.abrp_api_key,
-                'token': abrp_user_token,
+                'api_key': self.abrp_api_key,
+                'token': self.abrp_user_token,
                 'tlm': urllib.parse.urlencode(data)
             })
             tlm_response.raise_for_status()
             print(f'ABRP: {tlm_response.content}')
 
 
-class saic_client_tosate:
-    def __init__(self, configuration: Configuration, publisher: Publisher):
-        self.configuration = configuration
-        self.publisher = publisher
+class SaicApi:
+    def __init__(self, saic_uri: str, saic_user: str, saic_password: str):
+        self.saic_uri = saic_uri
+        self.saic_user = saic_user
+        self.saic_password = saic_password
         self.message_v1_1_coder = MessageCoderV11()
         self.message_V2_1_coder = MessageCoderV21()
         self.message_V3_0_coder = MessageCoderV30()
@@ -88,14 +89,14 @@ class saic_client_tosate:
 
     def login(self) -> MessageV11:
         application_data = MpUserLoggingInReq()
-        application_data.password = self.configuration.saic_password
+        application_data.password = self.saic_password
         header = Header()
         header.protocol_version = 17
         login_request_message = MessageV11(header, MessageBodyV11(), application_data)
         application_id = '501'
         application_data_protocol_version = 513
         self.message_v1_1_coder.initialize_message(
-            UID_INIT[len(self.configuration.saic_user):] + self.configuration.saic_user,
+            UID_INIT[len(self.saic_user):] + self.saic_user,
             cast(str, None),
             application_id,
             application_data_protocol_version,
@@ -105,7 +106,7 @@ class saic_client_tosate:
         login_request_hex = self.message_v1_1_coder.encode_request(login_request_message)
         self.publish_raw_value(application_id, application_data_protocol_version, login_request_hex)
         login_response_hex = self.send_request(login_request_hex,
-                                               urllib.parse.urljoin(self.configuration.saic_uri, '/TAP.Web/ota.mp'))
+                                               urllib.parse.urljoin(self.saic_uri, '/TAP.Web/ota.mp'))
         self.publish_raw_value(application_id, application_data_protocol_version, login_response_hex)
         logging_in_rsp = MpUserLoggingInRsp()
         login_response_message = MessageV11(header, MessageBodyV11(), logging_in_rsp)
@@ -142,8 +143,7 @@ class saic_client_tosate:
         alarm_switch_request_hex = self.message_v1_1_coder.encode_request(alarm_switch_req_message)
         self.publish_raw_value(application_id, application_data_protocol_version, alarm_switch_request_hex)
         alarm_switch_response_hex = self.send_request(alarm_switch_request_hex,
-                                                      urllib.parse.urljoin(self.configuration.saic_uri,
-                                                                           '/TAP.Web/ota.mp'))
+                                                      urllib.parse.urljoin(self.saic_uri, '/TAP.Web/ota.mp'))
         self.publish_raw_value(application_id, application_data_protocol_version, alarm_switch_response_hex)
         alarm_switch_response_message = MessageV11(header, MessageBodyV11())
         self.message_v1_1_coder.decode_response(alarm_switch_response_hex, alarm_switch_response_message)
@@ -167,8 +167,7 @@ class saic_client_tosate:
         vehicle_status_req_hex = self.message_V2_1_coder.encode_request(vehicle_status_req_msg)
         self.publish_raw_value(application_id, application_data_protocol_version, vehicle_status_req_hex)
         vehicle_status_rsp_hex = self.send_request(vehicle_status_req_hex,
-                                                   urllib.parse.urljoin(self.configuration.saic_uri,
-                                                                        '/TAP.Web/ota.mpv21'))
+                                                   urllib.parse.urljoin(self.saic_uri, '/TAP.Web/ota.mpv21'))
         self.publish_raw_value(application_id, application_data_protocol_version, vehicle_status_rsp_hex)
         vehicle_status_rsp_msg = MessageV2(MessageBodyV2(), OtaRvmVehicleStatusResp25857())
         self.message_V2_1_coder.decode_response(vehicle_status_rsp_hex, vehicle_status_rsp_msg)
@@ -269,8 +268,7 @@ class saic_client_tosate:
         vehicle_control_cmd_req_msg_hex = self.message_V2_1_coder.encode_request(vehicle_control_cmd_req_msg)
         self.publish_raw_value(application_id, application_data_protocol_version, vehicle_control_cmd_req_msg_hex)
         vehicle_control_cmd_rsp_msg_hex = self.send_request(vehicle_control_cmd_req_msg_hex,
-                                                            urllib.parse.urljoin(self.configuration.saic_uri,
-                                                                                 '/TAP.Web/ota.mpv21'))
+                                                            urllib.parse.urljoin(self.saic_uri, '/TAP.Web/ota.mpv21'))
         self.publish_raw_value(application_id, application_data_protocol_version, vehicle_control_cmd_rsp_msg_hex)
         vehicle_control_cmd_rsp_msg = MessageV2(MessageBodyV2())
         self.message_V2_1_coder.decode_response(vehicle_control_cmd_rsp_msg_hex, vehicle_control_cmd_rsp_msg)
@@ -290,8 +288,7 @@ class saic_client_tosate:
         chrg_mgmt_data_req_hex = self.message_V3_0_coder.encode_request(chrg_mgmt_data_req_msg)
         self.publish_raw_value(application_id, application_data_protocol_version, chrg_mgmt_data_req_hex)
         chrg_mgmt_data_rsp_hex = self.send_request(chrg_mgmt_data_req_hex,
-                                                   urllib.parse.urljoin(self.configuration.saic_uri,
-                                                                        '/TAP.Web/ota.mpv30'))
+                                                   urllib.parse.urljoin(self.saic_uri, '/TAP.Web/ota.mpv30'))
         self.publish_raw_value(application_id, application_data_protocol_version, chrg_mgmt_data_rsp_hex)
         chrg_mgmt_data_rsp_msg = MessageV30(MessageBodyV30(), OtaChrgMangDataResp())
         self.message_V3_0_coder.decode_response(chrg_mgmt_data_rsp_hex, chrg_mgmt_data_rsp_msg)
@@ -320,7 +317,7 @@ class saic_client_tosate:
         message_list_req_hex = self.message_v1_1_coder.encode_request(message_list_req_msg)
         self.publish_raw_value(application_id, application_data_protocol_version, message_list_req_hex)
         message_list_rsp_hex = self.send_request(message_list_req_hex,
-                                                 urllib.parse.urljoin(self.configuration.saic_uri, '/TAP.Web/ota.mp'))
+                                                 urllib.parse.urljoin(self.saic_uri, '/TAP.Web/ota.mp'))
         self.publish_raw_value(application_id, application_data_protocol_version, message_list_rsp_hex)
         message_list_rsp_msg = MessageV11(header, MessageBodyV11(), MessageListResp())
         self.message_v1_1_coder.decode_response(message_list_rsp_hex, message_list_rsp_msg)
@@ -328,10 +325,10 @@ class saic_client_tosate:
         return message_list_rsp_msg
 
     def publish_raw_value(self, application_id: str, application_data_protocol_version: int, raw: str):
-        self.publisher.publish_str(f'{application_id}_{application_data_protocol_version}/raw', raw)
+        logging.debug(f'{application_id}_{application_data_protocol_version}/raw: {raw}')
 
     def publish_json_value(self, application_id: str, application_data_protocol_version: int, data: dict):
-        self.publisher.publish_json(f'{application_id}_{application_data_protocol_version}/json', data)
+        logging.debug(f'{application_id}_{application_data_protocol_version}/json: {data}')
 
     def send_request(self, hex_message: str, endpoint) -> str:
         headers = {
