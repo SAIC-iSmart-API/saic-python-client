@@ -6,7 +6,7 @@ A Python package for interacting with the MG iSMART API.
 
 MG iSMART is the connectivity system in your MG car (MG5 MG4, ZS...).
 
-The implementation is based on the findings from the [SAIC-API Documentation](https://github.com/tosate/SAIC-API-Documentation) project.
+The implementation is based on the findings from the [SAIC-API Documentation](https://github.com/ReverseEngineeringDE/SAIC-API-Documentation) project.
 
 Supported functionality
 

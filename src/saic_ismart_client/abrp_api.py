@@ -1,9 +1,8 @@
 import urllib.parse
 
 import requests
-
-from ota_v2_1.data_model import OtaRvmVehicleStatusResp25857
-from ota_v3_0.data_model import OtaChrgMangDataResp
+from saic_ismart_client.ota_v2_1.data_model import OtaRvmVehicleStatusResp25857
+from saic_ismart_client.ota_v3_0.data_model import OtaChrgMangDataResp
 
 
 class AbrpApi:
