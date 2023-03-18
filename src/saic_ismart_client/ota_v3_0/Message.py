@@ -1,4 +1,4 @@
-from saic_client_tosate.common_model import ApplicationData, MessageV2, MessageCoderV2, MessageBodyV2
+from saic_ismart_client.common_model import ApplicationData, MessageV2, MessageCoderV2, MessageBodyV2
 
 
 class MessageBodyV30(MessageBodyV2):

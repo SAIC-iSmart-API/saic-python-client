@@ -1,4 +1,4 @@
-from saic_client_tosate.common_model import MessageCoderV2, MessageV2
+from saic_ismart_client.common_model import MessageCoderV2, MessageV2
 
 
 class MessageCoderV21(MessageCoderV2):

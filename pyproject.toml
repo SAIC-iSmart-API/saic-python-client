@@ -3,15 +3,15 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "saic_client_tosate"
-version = "0.1.1"
+name = "saic_ismart_client"
+version = "0.1.0"
 authors = [
-    { name = "Thomas Salm", email="saic-client@devtom.de"},
+    { name = "Thomas Salm", email="saic-ismart-client@devtom.de"},
 ]
 dependencies = [
-    "asn1tools >= 0.166.0",
+    "asn1tools >= 0.165.0",
     "requests >= 2.28.2",
-    "urllib3 >= 1.26.15",
+    "urllib3 >= 1.26.14",
 ]
 description = "SAIC client library (MG iSMART)"
 readme = "README.md"

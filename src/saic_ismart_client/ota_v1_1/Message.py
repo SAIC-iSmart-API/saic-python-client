@@ -1,5 +1,5 @@
-from saic_client_tosate.common_model import MessageCoderV1
-from saic_client_tosate.ota_v1_1.data_model import MessageV11
+from saic_ismart_client.common_model import MessageCoderV1
+from saic_ismart_client.ota_v1_1.data_model import MessageV11
 
 
 class MessageCoderV11(MessageCoderV1):

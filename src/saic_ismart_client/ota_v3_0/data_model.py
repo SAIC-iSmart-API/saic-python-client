@@ -1,4 +1,4 @@
-from saic_client_tosate.common_model import ApplicationData, Asn1Type
+from saic_ismart_client.common_model import ApplicationData, Asn1Type
 
 
 class OtaChrgMangDataResp(ApplicationData):
@@ -151,11 +151,11 @@ class OtaChrgMangDataResp(ApplicationData):
     def get_current(self) -> float:
         return self.bmsPackCrnt / 1000.0
 
-    def get_voltage(self) -> int:
-        return self.bmsPackVol
+    def get_voltage(self) -> float:
+        return self.bmsPackVol * 0.25
 
     def get_power(self) -> float:
-        return round(self.get_current() * float(self.get_voltage()) / 1000.0, 2)
+        return round(self.get_current() * self.get_voltage() / 1000.0, 2)
 
 
 class RvsChargingStatus(Asn1Type):

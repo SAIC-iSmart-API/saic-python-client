@@ -3,9 +3,9 @@ import time
 from typing import cast
 from unittest import TestCase
 
-from saic_client_tosate.common_model import DataEncodingType, MessageBodyV2, MessageV2
-from saic_client_tosate.ota_v2_1.Message import MessageCoderV21
-from saic_client_tosate.ota_v2_1.data_model import OtaRvcReq, RvcReqParam
+from saic_ismart_client.common_model import DataEncodingType, MessageBodyV2, MessageV2
+from saic_ismart_client.ota_v2_1.Message import MessageCoderV21
+from saic_ismart_client.ota_v2_1.data_model import OtaRvcReq, RvcReqParam
 
 
 class TestMessageCoderV21(TestCase):

@@ -1,6 +1,6 @@
 from typing import cast
 
-from saic_client_tosate.common_model import Asn1Type, ApplicationData
+from saic_ismart_client.common_model import Asn1Type, ApplicationData
 
 FIELD_VALUE = 'value'
 FIELD_ID = 'id'

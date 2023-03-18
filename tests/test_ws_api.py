@@ -4,14 +4,14 @@ from unittest.mock import patch, PropertyMock
 
 import requests
 
-from saic_client_tosate.common_model import Header, MessageV2, MessageBodyV2
-from saic_client_tosate.ota_v1_1.Message import MessageCoderV11
-from saic_client_tosate.ota_v1_1.data_model import MessageV11, MpUserLoggingInRsp, MessageBodyV11, VinInfo
-from saic_client_tosate.ota_v2_1.Message import MessageCoderV21
-from saic_client_tosate.ota_v2_1.data_model import OtaRvmVehicleStatusResp25857, RvsPosition, RvsWayPoint,\
+from saic_ismart_client.common_model import Header, MessageV2, MessageBodyV2
+from saic_ismart_client.ota_v1_1.Message import MessageCoderV11
+from saic_ismart_client.ota_v1_1.data_model import MessageV11, MpUserLoggingInRsp, MessageBodyV11, VinInfo
+from saic_ismart_client.ota_v2_1.Message import MessageCoderV21
+from saic_ismart_client.ota_v2_1.data_model import OtaRvmVehicleStatusResp25857, RvsPosition, RvsWayPoint,\
     RvsWgs84Point, Timestamp4Short, RvsBasicStatus25857
-from saic_client_tosate.ota_v3_0.Message import MessageBodyV30, MessageV30, MessageCoderV30
-from saic_client_tosate.ota_v3_0.data_model import OtaChrgMangDataResp, RvsChargingStatus
+from saic_ismart_client.ota_v3_0.Message import MessageBodyV30, MessageV30, MessageCoderV30
+from saic_ismart_client.ota_v3_0.data_model import OtaChrgMangDataResp, RvsChargingStatus
 
 from saic_api import SaicApi
 

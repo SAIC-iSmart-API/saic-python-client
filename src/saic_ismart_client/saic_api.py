@@ -7,19 +7,50 @@ from typing import cast
 
 import requests as requests
 
-from saic_client_tosate.common_model import MessageV2, MessageBodyV2, Header
-from saic_client_tosate.ota_v1_1.Message import MessageCoderV11
-from saic_client_tosate.ota_v1_1.data_model import VinInfo, MpUserLoggingInReq, MpUserLoggingInRsp, AlarmSwitchReq, \
+from saic_ismart_client.common_model import MessageV2, MessageBodyV2, Header
+from saic_ismart_client.ota_v1_1.Message import MessageCoderV11
+from saic_ismart_client.ota_v1_1.data_model import VinInfo, MpUserLoggingInReq, MpUserLoggingInRsp, AlarmSwitchReq, \
     MpAlarmSettingType, AlarmSwitch, MessageBodyV11, MessageV11, MessageListReq, StartEndNumber, MessageListResp, \
-    Timestamp
-from saic_client_tosate.ota_v2_1.Message import MessageCoderV21
-from saic_client_tosate.ota_v2_1.data_model import OtaRvmVehicleStatusReq, OtaRvmVehicleStatusResp25857, OtaRvcReq,\
+    Timestamp, Message
+from saic_ismart_client.ota_v2_1.Message import MessageCoderV21
+from saic_ismart_client.ota_v2_1.data_model import OtaRvmVehicleStatusReq, OtaRvmVehicleStatusResp25857, OtaRvcReq,\
     RvcReqParam
-from saic_client_tosate.ota_v3_0.Message import MessageCoderV30, MessageV30, MessageBodyV30
-from saic_client_tosate.ota_v3_0.data_model import OtaChrgMangDataResp
+from saic_ismart_client.ota_v3_0.Message import MessageCoderV30, MessageV30, MessageBodyV30
+from saic_ismart_client.ota_v3_0.data_model import OtaChrgMangDataResp
 
 UID_INIT = '0000000000000000000000000000000000000000000000000#'
 logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
+
+
+class SaicMessage:
+    def __init__(self, message_id: int, message_type: str, title: str, message_time: datetime, sender: str,
+                 content: str, read_status: int, vin: str):
+        self.message_id = message_id
+        self.message_type = message_type
+        self.title = title
+        self.message_time = message_time
+        self.sender = sender
+        self.content = content
+        self.read_status = read_status
+        self.vin = vin
+
+    def get_read_status_str(self) -> str:
+        if self.read_status is None:
+            return 'unknown'
+        elif self.read_status == 0:
+            return 'unread'
+        else:
+            return 'read'
+
+
+def convert(message: Message) -> SaicMessage:
+    if message.content is not None:
+        content = message.content.decode()
+    else:
+        content = None
+    return SaicMessage(message.message_id, message.message_type, message.title.decode(),
+                       message.message_time.get_timestamp(), message.sender.decode(), content, message.read_status,
+                       message.vin)
 
 
 class SaicApi:
@@ -34,6 +65,8 @@ class SaicApi:
         self.uid = ''
         self.token = ''
         self.token_expiration = None
+        self.on_publish_raw_value = None
+        self.on_publish_json_value = None
 
     def login(self) -> MessageV11:
         application_data = MpUserLoggingInReq()
@@ -183,7 +216,7 @@ class SaicApi:
 
         self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x20', rvc_params)
 
-    def send_vehicle_ctrl_cmd_with_retry(self, vin_info: VinInfo, rvc_req_type: bytes, rvc_params: list):
+    def send_vehicle_ctrl_cmd_with_retry(self, vin_info: VinInfo, rvc_req_type: bytes, rvc_params: list) -> None:
         vehicle_control_cmd_rsp_msg = self.send_vehicle_control_command(vin_info, rvc_req_type, rvc_params)
         retry = 1
         while (
@@ -195,6 +228,33 @@ class SaicApi:
             vehicle_control_cmd_rsp_msg = self.send_vehicle_control_command(vin_info, rvc_req_type, rvc_params,
                                                                             event_id)
             retry += 1
+
+        if vehicle_control_cmd_rsp_msg.body.error_message is not None:
+            logging.error(vehicle_control_cmd_rsp_msg.body.error_message.decode())
+
+    def get_message_list_with_retry(self) -> list:
+        message_list_rsp_msg = self.get_message_list()
+
+        retry = 0
+        while (
+                message_list_rsp_msg.application_data is None
+                and retry < 3
+        ):
+            if message_list_rsp_msg.body.error_message is not None:
+                logging.error(message_list_rsp_msg.body.error_message.decode())
+            else:
+                waiting_time = retry * 60
+                logging.debug(
+                    f'Update message list request returned no application data. Waiting {waiting_time} seconds')
+                time.sleep(float(waiting_time))
+                retry += 1
+
+        result = []
+        if message_list_rsp_msg.application_data is not None:
+            message_list_rsp = cast(MessageListResp, message_list_rsp_msg.application_data)
+            for message in message_list_rsp.messages:
+                result.append(convert(message))
+        return result
 
     def send_vehicle_control_command(self, vin_info: VinInfo, rvc_req_type: bytes, rvc_params: list,
                                      event_id: str = None) -> MessageV2:
@@ -273,10 +333,18 @@ class SaicApi:
         return message_list_rsp_msg
 
     def publish_raw_value(self, application_id: str, application_data_protocol_version: int, raw: str):
-        logging.debug(f'{application_id}_{application_data_protocol_version}/raw: {raw}')
+        key = f'{application_id}_{application_data_protocol_version}/raw'
+        if self.on_publish_raw_value is not None:
+            self.on_publish_raw_value(key, raw)
+        else:
+            logging.debug(f'{key}: {raw}')
 
     def publish_json_value(self, application_id: str, application_data_protocol_version: int, data: dict):
-        logging.debug(f'{application_id}_{application_data_protocol_version}/json: {data}')
+        key = f'{application_id}_{application_data_protocol_version}/json'
+        if self.on_publish_json_value is not None:
+            self.on_publish_json_value(key, data)
+        else:
+            logging.debug(f'{key}: {data}')
 
     def send_request(self, hex_message: str, endpoint) -> str:
         headers = {

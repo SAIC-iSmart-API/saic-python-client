@@ -1,1 +1,1 @@
-include src/saic_client_tosate/ASN.1_schema/*/*.asn1
+include src/saic_ismart_client/ASN.1_schema/*/*.asn1

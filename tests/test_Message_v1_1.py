@@ -3,9 +3,9 @@ import time
 from typing import cast
 from unittest import TestCase
 
-from saic_client_tosate.common_model import DataEncodingType, MessageCounter, BasicPosition, NetworkInfo, Header
-from saic_client_tosate.ota_v1_1.Message import MessageCoderV11
-from saic_client_tosate.ota_v1_1.data_model import MpUserLoggingInReq, MessageBodyV11, MessageV11, MessageListReq,\
+from saic_ismart_client.common_model import DataEncodingType, MessageCounter, BasicPosition, NetworkInfo, Header
+from saic_ismart_client.ota_v1_1.Message import MessageCoderV11
+from saic_ismart_client.ota_v1_1.data_model import MpUserLoggingInReq, MessageBodyV11, MessageV11, MessageListReq,\
     StartEndNumber
 
 

@@ -1,7 +1,7 @@
 import datetime
 from enum import Enum
 
-from saic_client_tosate.common_model import Asn1Type, ApplicationData, MessageBodyV1, MessageV1, Header
+from saic_ismart_client.common_model import Asn1Type, ApplicationData, MessageBodyV1, MessageV1, Header
 
 FIELD_SECONDS = 'seconds'
 FIELD_MESSAGE_TIME = 'messageTime'
