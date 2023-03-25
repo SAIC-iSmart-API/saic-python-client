@@ -42,6 +42,10 @@ class SaicMessage:
         else:
             return 'read'
 
+    def get_details(self) -> str:
+        return f'ID: {self.message_id}, Time: {self.message_time}, Type: {self.message_type}, Title: {self.title}, '\
+            + f'Content: {self.content}, Status: {self.get_read_status_str()}, Sender: {self.sender}, VIN: {self.vin}'
+
 
 def convert(message: Message) -> SaicMessage:
     if message.content is not None:
