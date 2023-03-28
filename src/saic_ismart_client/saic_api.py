@@ -113,10 +113,9 @@ class SaicApi:
                 self.token_expiration = logging_in_rsp.token_expiration
         return login_response_message
 
-    def set_alarm_switches(self) -> None:
+    def set_alarm_switches(self, alarm_switches: list) -> None:
         alarm_switch_req = AlarmSwitchReq()
-        for setting_type in MpAlarmSettingType:
-            alarm_switch_req.alarm_switch_list.append(create_alarm_switch(setting_type))
+        alarm_switch_req.alarm_switch_list = alarm_switches
         alarm_switch_req.pin = hash_md5('123456')
 
         header = Header()
