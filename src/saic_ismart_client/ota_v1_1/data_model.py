@@ -3,6 +3,7 @@ from enum import Enum
 
 from saic_ismart_client.common_model import Asn1Type, ApplicationData, MessageBodyV1, MessageV1, Header
 
+FIELD_ACTION_TYPE = 'actionType'
 FIELD_SECONDS = 'seconds'
 FIELD_MESSAGE_TIME = 'messageTime'
 FIELD_FUNCTION_SWITCH = 'functionSwitch'
@@ -316,6 +317,38 @@ class MessageListReq(ApplicationData):
     def init_from_dict(self, data: dict):
         self.start_end_number = StartEndNumber()
         self.start_end_number.init_from_dict(data.get(FIELD_START_END_NUMBER))
+
+
+class AbortSendMessageReq(ApplicationData):
+    def __init__(self):
+        super().__init__('AbortSendMessageReq')
+        self.messages = []  # SEQUENCE SIZE(1..256) OF Message OPTIONAL
+        self.message_id = -1  # INTEGER(0..281474976710655) OPTIONAL
+        self.action_type = ''  # IA5String(SIZE(1..20)) OPTIONAL
+
+    def get_data(self) -> dict:
+        data = {}
+        if len(self.messages) > 0:
+            message_list = []
+            for message in self.messages:
+                message_list.append(message.get_data())
+            data[FIELD_MESSAGES] = message_list
+        if self.message_id != -1:
+            data[FIELD_MESSAGE_ID] = self.message_id
+        if len(self.action_type) > 0:
+            data[FIELD_ACTION_TYPE] = self.action_type
+        return data
+
+    def init_from_dict(self, data: dict):
+        if FIELD_MESSAGES in data:
+            for msg in data[FIELD_MESSAGES]:
+                message = Message()
+                message.init_from_dict(msg)
+                self.messages.append(message)
+        if FIELD_MESSAGE_ID in data:
+            self.message_id = data[FIELD_MESSAGE_ID]
+        if FIELD_ACTION_TYPE in data:
+            self.action_type = data[FIELD_ACTION_TYPE]
 
 
 class Message(Asn1Type):
