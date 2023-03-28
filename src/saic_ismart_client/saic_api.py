@@ -11,14 +11,12 @@ from saic_ismart_client.common_model import MessageV2, MessageBodyV2, Header
 from saic_ismart_client.ota_v1_1.Message import MessageCoderV11
 from saic_ismart_client.ota_v1_1.data_model import VinInfo, MpUserLoggingInReq, MpUserLoggingInRsp, AlarmSwitchReq, \
     MpAlarmSettingType, AlarmSwitch, MessageBodyV11, MessageV11, MessageListReq, StartEndNumber, MessageListResp, \
-    Timestamp, Message
+    Timestamp, Message, AbortSendMessageReq
 from saic_ismart_client.ota_v2_1.Message import MessageCoderV21
 from saic_ismart_client.ota_v2_1.data_model import OtaRvmVehicleStatusReq, OtaRvmVehicleStatusResp25857, OtaRvcReq,\
     RvcReqParam
 from saic_ismart_client.ota_v3_0.Message import MessageCoderV30, MessageV30, MessageBodyV30
 from saic_ismart_client.ota_v3_0.data_model import OtaChrgMangDataResp
-
-from ota_v1_1.data_model import AbortSendMessageReq
 
 UID_INIT = '0000000000000000000000000000000000000000000000000#'
 logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
