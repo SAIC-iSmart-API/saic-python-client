@@ -3,10 +3,12 @@ from unittest import TestCase
 from unittest.mock import patch, PropertyMock
 
 import requests
+import saic_ismart_client.saic_api
 
 from saic_ismart_client.common_model import Header, MessageV2, MessageBodyV2
 from saic_ismart_client.ota_v1_1.Message import MessageCoderV11
-from saic_ismart_client.ota_v1_1.data_model import MessageV11, MpUserLoggingInRsp, MessageBodyV11, VinInfo
+from saic_ismart_client.ota_v1_1.data_model import MessageV11, MpUserLoggingInRsp, MessageBodyV11, VinInfo, \
+    MpAlarmSettingType
 from saic_ismart_client.ota_v2_1.Message import MessageCoderV21
 from saic_ismart_client.ota_v2_1.data_model import OtaRvmVehicleStatusResp25857, RvsPosition, RvsWayPoint,\
     RvsWgs84Point, Timestamp4Short, RvsBasicStatus25857
@@ -224,7 +226,10 @@ class TestSaicApi(TestCase):
         mock_response(mocked_post, mock_alarm_switch_response_hex(self.message_coder_v1_1))
 
         try:
-            self.saic_api.set_alarm_switches()
+            alarm_switches = []
+            for alarm_setting_type in MpAlarmSettingType:
+                alarm_switches.append(saic_ismart_client.saic_api.create_alarm_switch(alarm_setting_type))
+            self.saic_api.set_alarm_switches(alarm_switches)
         except Exception:
             self.fail()
 
