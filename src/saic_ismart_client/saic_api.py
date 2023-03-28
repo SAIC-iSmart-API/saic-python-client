@@ -18,6 +18,8 @@ from saic_ismart_client.ota_v2_1.data_model import OtaRvmVehicleStatusReq, OtaRv
 from saic_ismart_client.ota_v3_0.Message import MessageCoderV30, MessageV30, MessageBodyV30
 from saic_ismart_client.ota_v3_0.data_model import OtaChrgMangDataResp
 
+from ota_v1_1.data_model import AbortSendMessageReq
+
 UID_INIT = '0000000000000000000000000000000000000000000000000#'
 logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
 
@@ -55,6 +57,12 @@ def convert(message: Message) -> SaicMessage:
     return SaicMessage(message.message_id, message.message_type, message.title.decode(),
                        message.message_time.get_timestamp(), message.sender.decode(), content, message.read_status,
                        message.vin)
+
+
+class SaicApiException(Exception):
+    def __init__(self, message: str, return_code: int):
+        super().__init__(message)
+        self.return_code = return_code
 
 
 class SaicApi:
@@ -98,7 +106,8 @@ class SaicApi:
         self.message_v1_1_coder.decode_response(login_response_hex, login_response_message)
         self.publish_json_value(application_id, application_data_protocol_version, login_response_message.get_data())
         if login_response_message.body.error_message is not None:
-            raise SystemExit(login_response_message.body.error_message.decode())
+            raise SaicApiException(login_response_message.body.error_message.decode(),
+                                   login_response_message.body.result)
         else:
             self.uid = login_response_message.body.uid
             self.token = logging_in_rsp.token
@@ -136,7 +145,8 @@ class SaicApi:
                                 alarm_switch_response_message.get_data())
 
         if alarm_switch_response_message.body.error_message is not None:
-            raise ValueError(alarm_switch_response_message.body.error_message.decode())
+            raise SaicApiException(alarm_switch_response_message.body.error_message.decode(),
+                                   alarm_switch_response_message.body.result)
 
     def get_vehicle_status(self, vin_info: VinInfo, event_id: str = None) -> MessageV2:
         vehicle_status_req = OtaRvmVehicleStatusReq()
@@ -234,7 +244,8 @@ class SaicApi:
             retry += 1
 
         if vehicle_control_cmd_rsp_msg.body.error_message is not None:
-            logging.error(vehicle_control_cmd_rsp_msg.body.error_message.decode())
+            raise SaicApiException(vehicle_control_cmd_rsp_msg.body.error_message.decode(),
+                                   vehicle_control_cmd_rsp_msg.body.result)
 
     def get_message_list_with_retry(self) -> list:
         message_list_rsp_msg = self.get_message_list()
@@ -324,7 +335,6 @@ class SaicApi:
                                                    application_data_protocol_version, 1, message_list_req_msg)
         if event_id is not None:
             message_body.event_id = event_id
-        message_list_req_msg.header.protocol_version = 18
         self.publish_json_value(application_id, application_data_protocol_version, message_list_req_msg.get_data())
         message_list_req_hex = self.message_v1_1_coder.encode_request(message_list_req_msg)
         self.publish_raw_value(application_id, application_data_protocol_version, message_list_req_hex)
@@ -335,6 +345,34 @@ class SaicApi:
         self.message_v1_1_coder.decode_response(message_list_rsp_hex, message_list_rsp_msg)
         self.publish_json_value(application_id, application_data_protocol_version, message_list_rsp_msg.get_data())
         return message_list_rsp_msg
+
+    def delete_message(self, message_id: int, event_id: str = None) -> None:
+        abort_send_msg_req = AbortSendMessageReq()
+        abort_send_msg_req.action_type = 'DELETE'
+        abort_send_msg_req.message_id = message_id
+
+        header = Header()
+        header.protocol_version = 17
+        message_body = MessageBodyV11()
+        message_delete_req_msg = MessageV11(header, message_body, abort_send_msg_req)
+        application_id = '615'
+        application_protocol_version = 513
+        self.message_v1_1_coder.initialize_message(self.uid, self.get_token(), application_id,
+                                                   application_protocol_version, 1, message_delete_req_msg)
+        if event_id is not None:
+            message_body.event_id = event_id
+        self.publish_json_value(application_id, application_protocol_version, abort_send_msg_req.get_data())
+        message_delete_req_hex = self.message_v1_1_coder.encode_request(message_delete_req_msg)
+        self.publish_raw_value(application_id, application_protocol_version, message_delete_req_hex)
+        message_delete_rsp_hex = self.send_request(message_delete_req_hex,
+                                                   urllib.parse.urljoin(self.saic_uri, '/TAP.Web/ota.mp'))
+        self.publish_raw_value(application_id, application_protocol_version, message_delete_rsp_hex)
+        message_delete_rsp_msg = MessageV11(header, MessageBodyV11())
+        self.message_v1_1_coder.decode_response(message_delete_rsp_hex, message_delete_rsp_msg)
+        self.publish_json_value(application_id, application_protocol_version, message_delete_rsp_msg.get_data())
+        if message_delete_rsp_msg.body.error_message is not None:
+            raise SaicApiException(message_delete_rsp_msg.body.error_message.decode(),
+                                   message_delete_rsp_msg.body.result)
 
     def publish_raw_value(self, application_id: str, application_data_protocol_version: int, raw: str):
         key = f'{application_id}_{application_data_protocol_version}/raw'
