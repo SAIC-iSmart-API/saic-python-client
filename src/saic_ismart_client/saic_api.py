@@ -58,7 +58,7 @@ def convert(message: Message) -> SaicMessage:
 
 
 class SaicApiException(Exception):
-    def __init__(self, message: str, return_code: int):
+    def __init__(self, message, return_code: int = None):
         super().__init__(message)
         self.return_code = return_code
 
@@ -394,11 +394,12 @@ class SaicApi:
             'Accept-Language': 'de-DE;q=1, en-DE;q=0.9, lu-DE;q=0.8, fr-DE;q=0.7',
             'Content-Length': str(len(hex_message))
         }
-
-        response = requests.post(url=endpoint, data=hex_message, headers=headers, cookies=self.cookies)
-        response.raise_for_status()
-        self.cookies = response.cookies
-        return response.content.decode()
+        try:
+            response = requests.post(url=endpoint, data=hex_message, headers=headers, cookies=self.cookies)
+            self.cookies = response.cookies
+            return response.content.decode()
+        except requests.exceptions.RequestException as e:
+            raise SaicApiException(e)
 
     def get_token(self):
         if self.token_expiration is not None:
