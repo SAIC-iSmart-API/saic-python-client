@@ -1,8 +1,16 @@
-import urllib.parse
+import json
 
 import requests
 from saic_ismart_client.ota_v2_1.data_model import OtaRvmVehicleStatusResp25857
 from saic_ismart_client.ota_v3_0.data_model import OtaChrgMangDataResp
+
+
+class AbrpApiException(Exception):
+    def __init__(self, msg: str):
+        self.message = msg
+
+    def __str__(self):
+        return self.message
 
 
 class AbrpApi:
@@ -48,10 +56,21 @@ class AbrpApi:
             if range_elec > 0:
                 data['est_battery_range'] = range_elec / 10.0
 
-            tlm_response = requests.get(tlm_send_url, params={
-                'api_key': self.abrp_api_key,
-                'token': self.abrp_user_token,
-                'tlm': urllib.parse.urlencode(data)
-            })
-            tlm_response.raise_for_status()
-            print(f'ABRP: {tlm_response.content}')
+            headers = {
+                'Authorization': f'APIKEY {self.abrp_api_key}'
+            }
+
+            try:
+                response = requests.post(url=tlm_send_url, headers=headers, params={
+                    'token': self.abrp_user_token,
+                    'tlm': json.dumps(data)
+                })
+                print(f'ABRP: {response.content}')
+            except requests.exceptions.ConnectionError as ece:
+                raise AbrpApiException(f'Connection error: {ece}')
+            except requests.exceptions.Timeout as et:
+                raise AbrpApiException(f'Timeout error {et}')
+            except requests.exceptions.HTTPError as ehttp:
+                raise AbrpApiException(f'HTTP error {ehttp}')
+            except requests.exceptions.RequestException as e:
+                raise AbrpApiException(f'{e}')
