@@ -7,7 +7,7 @@ from typing import cast
 
 import requests as requests
 
-from saic_ismart_client.common_model import MessageV2, MessageBodyV2, Header
+from saic_ismart_client.common_model import MessageV2, MessageBodyV2, Header, AbstractMessageBody
 from saic_ismart_client.ota_v1_1.Message import MessageCoderV11
 from saic_ismart_client.ota_v1_1.data_model import VinInfo, MpUserLoggingInReq, MpUserLoggingInRsp, AlarmSwitchReq, \
     MpAlarmSettingType, AlarmSwitch, MessageBodyV11, MessageV11, MessageListReq, StartEndNumber, MessageListResp, \
@@ -19,6 +19,7 @@ from saic_ismart_client.ota_v3_0.Message import MessageCoderV30, MessageV30, Mes
 from saic_ismart_client.ota_v3_0.data_model import OtaChrgMangDataResp
 
 UID_INIT = '0000000000000000000000000000000000000000000000000#'
+AVG_SMS_DELIVERY_TIME = 15
 logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
 
 
@@ -240,7 +241,8 @@ class SaicApi:
                 vehicle_control_cmd_rsp_msg.body.error_message is not None
                 and retry < 3
         ):
-            time.sleep(float(2))
+            self.handle_error(vehicle_control_cmd_rsp_msg.body)
+
             event_id = vehicle_control_cmd_rsp_msg.body.event_id
             vehicle_control_cmd_rsp_msg = self.send_vehicle_control_command(vin_info, rvc_req_type, rvc_params,
                                                                             event_id)
@@ -259,7 +261,7 @@ class SaicApi:
                 and retry < 3
         ):
             if message_list_rsp_msg.body.error_message is not None:
-                logging.error(message_list_rsp_msg.body.error_message.decode())
+                self.handle_error(message_list_rsp_msg.body)
             else:
                 waiting_time = retry * 60
                 logging.debug(
@@ -434,6 +436,23 @@ class SaicApi:
             if token_expiration.get_timestamp() < datetime.datetime.now():
                 self.login()
         return self.token
+
+    def handle_error(self, message_body: AbstractMessageBody):
+        message = f'application ID: {message_body.application_id},'\
+              + f' protocol version: {message_body.application_data_protocol_version},'\
+              + f' message: {message_body.error_message.decode()}'\
+              + f' result code: {message_body.result}'
+
+        if message_body.result == 2:
+            # re-login
+            logging.debug(message)
+            self.login()
+        elif message_body.result == 4:
+            # please try again later
+            logging.debug(message)
+            time.sleep(float(AVG_SMS_DELIVERY_TIME))
+        else:
+            logging.error(message)
 
 
 def hash_md5(password: str) -> str:
