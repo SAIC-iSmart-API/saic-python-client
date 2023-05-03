@@ -15,7 +15,7 @@ from saic_ismart_client.ota_v2_1.data_model import OtaRvmVehicleStatusResp25857,
 from saic_ismart_client.ota_v3_0.Message import MessageBodyV30, MessageV30, MessageCoderV30
 from saic_ismart_client.ota_v3_0.data_model import OtaChrgMangDataResp, RvsChargingStatus
 
-from saic_ismart_client.saic_api import SaicApi
+from saic_ismart_client.saic_api import SaicApi, SaicApiException
 
 TOKEN = '99X9999X-90XX-99X9-99X9-9XX9XX0X9X9XXX9X'
 UID = '00000000000000000000000000000000000090000000099999'
@@ -230,7 +230,7 @@ class TestSaicApi(TestCase):
             for alarm_setting_type in MpAlarmSettingType:
                 alarm_switches.append(saic_ismart_client.saic_api.create_alarm_switch(alarm_setting_type))
             self.saic_api.set_alarm_switches(alarm_switches)
-        except Exception:
+        except SaicApiException:
             self.fail()
 
     @patch.object(requests, 'post')
@@ -238,7 +238,7 @@ class TestSaicApi(TestCase):
         vin_info = create_vin_info(VIN)
         mock_response(mocked_post, mock_vehicle_status_response(self.message_coder_v2_1, UID, TOKEN, vin_info))
 
-        vehicle_status_rsp_msg = self.saic_api.get_vehicle_status(vin_info)
+        vehicle_status_rsp_msg = self.saic_api.get_vehicle_status_with_retry(vin_info)
         app_data = cast(OtaRvmVehicleStatusResp25857, vehicle_status_rsp_msg.application_data)
         self.assertEqual(1000000000, app_data.status_time)
 
@@ -247,6 +247,6 @@ class TestSaicApi(TestCase):
         vin_info = create_vin_info(VIN)
         mock_response(mocked_post, mock_chrg_mgmt_data_rsp(self.message_coder_v3_0, UID, TOKEN, vin_info))
 
-        chrg_mgmt_data_rsp_msg = self.saic_api.get_charging_status(vin_info)
+        chrg_mgmt_data_rsp_msg = self.saic_api.get_charging_status_with_retry(vin_info)
         app_data = cast(OtaChrgMangDataResp, chrg_mgmt_data_rsp_msg.application_data)
         self.assertEqual(1023, app_data.bmsChrgOtptCrntReq)

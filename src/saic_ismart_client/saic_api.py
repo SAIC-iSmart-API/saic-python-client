@@ -174,7 +174,7 @@ class SaicApi:
         return vehicle_status_rsp_msg
 
     def get_vehicle_status_with_retry(self, vin_info: VinInfo) -> MessageV2:
-        return self.handle_retry(self.get_vehicle_status_with_retry(vin_info))
+        return self.handle_retry(self.get_vehicle_status, vin_info)
 
     def lock_vehicle(self, vin_info: VinInfo) -> None:
         rvc_params = []
@@ -256,7 +256,7 @@ class SaicApi:
                                    vehicle_control_cmd_rsp_msg.body.result)
 
     def get_message_list_with_retry(self) -> list:
-        message_list_rsp_msg = self.handle_retry(self.get_message_list())
+        message_list_rsp_msg = self.handle_retry(self.get_message_list)
 
         result = []
         if message_list_rsp_msg.application_data is not None:
@@ -265,8 +265,11 @@ class SaicApi:
                 result.append(convert(message))
         return result
 
-    def handle_retry(self, func):
-        rsp = func
+    def handle_retry(self, func, vin_info: VinInfo = None):
+        if vin_info:
+            rsp = func(vin_info)
+        else:
+            rsp = func
         rsp_msg = cast(AbstractMessage, rsp)
         while rsp_msg.application_data is None:
             if rsp_msg.body.error_message is not None:
@@ -325,7 +328,7 @@ class SaicApi:
         return chrg_mgmt_data_rsp_msg
 
     def get_charging_status_with_retry(self, vin_info: VinInfo) -> MessageV30:
-        return self.handle_retry(self.get_charging_status(vin_info))
+        return self.handle_retry(self.get_charging_status, vin_info)
 
     def get_message_list(self, event_id: str = None) -> MessageV11:
         message_list_request = MessageListReq()
