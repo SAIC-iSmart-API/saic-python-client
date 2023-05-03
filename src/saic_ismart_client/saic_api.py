@@ -7,7 +7,7 @@ from typing import cast
 
 import requests as requests
 
-from saic_ismart_client.common_model import MessageV2, MessageBodyV2, Header, AbstractMessageBody
+from saic_ismart_client.common_model import MessageV2, MessageBodyV2, Header, AbstractMessageBody, AbstractMessage
 from saic_ismart_client.ota_v1_1.Message import MessageCoderV11
 from saic_ismart_client.ota_v1_1.data_model import VinInfo, MpUserLoggingInReq, MpUserLoggingInRsp, AlarmSwitchReq, \
     MpAlarmSettingType, AlarmSwitch, MessageBodyV11, MessageV11, MessageListReq, StartEndNumber, MessageListResp, \
@@ -173,6 +173,9 @@ class SaicApi:
         self.publish_json_response(application_id, application_data_protocol_version, vehicle_status_rsp_msg.get_data())
         return vehicle_status_rsp_msg
 
+    def get_vehicle_status_with_retry(self, vin_info: VinInfo) -> MessageV2:
+        return self.handle_retry(self.get_vehicle_status_with_retry(vin_info))
+
     def lock_vehicle(self, vin_info: VinInfo) -> None:
         rvc_params = []
         self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x01', rvc_params)
@@ -253,21 +256,7 @@ class SaicApi:
                                    vehicle_control_cmd_rsp_msg.body.result)
 
     def get_message_list_with_retry(self) -> list:
-        message_list_rsp_msg = self.get_message_list()
-
-        retry = 0
-        while (
-                message_list_rsp_msg.application_data is None
-                and retry < 3
-        ):
-            if message_list_rsp_msg.body.error_message is not None:
-                self.handle_error(message_list_rsp_msg.body)
-            else:
-                waiting_time = retry * 60
-                logging.debug(
-                    f'Update message list request returned no application data. Waiting {waiting_time} seconds')
-                time.sleep(float(waiting_time))
-                retry += 1
+        message_list_rsp_msg = self.handle_retry(self.get_message_list())
 
         result = []
         if message_list_rsp_msg.application_data is not None:
@@ -275,6 +264,18 @@ class SaicApi:
             for message in message_list_rsp.messages:
                 result.append(convert(message))
         return result
+
+    def handle_retry(self, func):
+        rsp = func
+        rsp_msg = cast(AbstractMessage, rsp)
+        while rsp_msg.application_data is None:
+            if rsp_msg.body.error_message is not None:
+                self.handle_error(rsp_msg.body)
+            else:
+                raise SaicApiException('API request returned no application data and no error message.')
+
+            rsp_msg = func
+        return rsp_msg
 
     def send_vehicle_control_command(self, vin_info: VinInfo, rvc_req_type: bytes, rvc_params: list,
                                      event_id: str = None) -> MessageV2:
@@ -322,6 +323,9 @@ class SaicApi:
         self.message_V3_0_coder.decode_response(chrg_mgmt_data_rsp_hex, chrg_mgmt_data_rsp_msg)
         self.publish_json_response(application_id, application_data_protocol_version, chrg_mgmt_data_rsp_msg.get_data())
         return chrg_mgmt_data_rsp_msg
+
+    def get_charging_status_with_retry(self, vin_info: VinInfo) -> MessageV30:
+        return self.handle_retry(self.get_charging_status(vin_info))
 
     def get_message_list(self, event_id: str = None) -> MessageV11:
         message_list_request = MessageListReq()
