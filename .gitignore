@@ -185,3 +185,5 @@ fabric.properties
 .idea
 
 .token
+
+src/saic_ismart_client/message_decoder.py
