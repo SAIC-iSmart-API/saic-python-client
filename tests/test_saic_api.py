@@ -195,7 +195,7 @@ def mock_chrg_mgmt_data_rsp(message_v3_0_coder: MessageCoderV30, uid: str, token
     return message_v3_0_coder.encode_request(chrg_mgmt_data_rsp_msg)
 
 
-def mock_start_ac_rsp_msg(message_coder_v2_1, UID, TOKEN, vin_info):
+def mock_start_ac_rsp_msg(message_coder_v2_1: MessageCoderV21, uid: str, token: str, vin_info: VinInfo):
     start_ac_rsp = OtaRvcStatus25857()
     start_ac_rsp.rvcReqType = b'\x06'
     start_ac_rsp.rvcReqSts = b'\x01'
@@ -245,6 +245,7 @@ def mock_start_ac_rsp_msg(message_coder_v2_1, UID, TOKEN, vin_info):
     start_ac_rsp.basicVehicleStatus.extended_data2 = 0  # is charging
     start_ac_rsp.basicVehicleStatus.fuel_range_elec = 32000
     start_ac_rsp_msg = MessageV2(MessageBodyV2(), start_ac_rsp)
+    message_coder_v2_1.initialize_message(uid, token, vin_info.vin, '510', 25857, 1, start_ac_rsp_msg)
     return message_coder_v2_1.encode_request(start_ac_rsp_msg)
 
 
@@ -309,6 +310,6 @@ class TestSaicApi(TestCase):
         vin_info = create_vin_info(VIN)
         mock_response(mocked_post, mock_start_ac_rsp_msg(self.message_coder_v2_1, UID, TOKEN, vin_info))
 
-        start_ac_rsp_msg = self.saic_api.start_ac()
+        start_ac_rsp_msg = self.saic_api.start_ac(vin_info)
         app_data = cast(OtaRvcStatus25857, start_ac_rsp_msg.application_data)
         self.assertEqual(app_data.rvcReqType, b'\x06')

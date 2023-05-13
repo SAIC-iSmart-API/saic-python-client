@@ -182,7 +182,7 @@ class SaicApi:
 
     def lock_vehicle(self, vin_info: VinInfo) -> MessageV2:
         rvc_params = []
-        return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x01', rvc_params)
+        return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x01', rvc_params, False)
 
     def unlock_vehicle(self, vin_info: VinInfo) -> MessageV2:
         rvc_params = []
@@ -211,7 +211,7 @@ class SaicApi:
         param5.param_value = b'\x00'
         rvc_params.append(param5)
 
-        return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x02', rvc_params)
+        return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x02', rvc_params, False)
 
     def start_rear_window_heat(self, vin_info: VinInfo) -> MessageV2:
         rvc_params = []
@@ -225,7 +225,7 @@ class SaicApi:
         param2.param_value = b'\x00'
         rvc_params.append(param2)
 
-        return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x20', rvc_params)
+        return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x20', rvc_params, False)
 
     def stop_rear_window_heat(self, vin_info: VinInfo) -> MessageV2:
         rvc_params = []
@@ -239,7 +239,7 @@ class SaicApi:
         param2.param_value = b'\x00'
         rvc_params.append(param2)
 
-        return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x20', rvc_params)
+        return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x20', rvc_params, False)
 
     def start_ac(self, vin_info: VinInfo) -> MessageV2:
         rcv_params = []
@@ -258,7 +258,7 @@ class SaicApi:
         param3.param_value = b'\x00'
         rcv_params.append(param3)
 
-        return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x06', rcv_params)
+        return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x06', rcv_params, True)
 
     def stop_ac(self, vin_info: VinInfo) -> MessageV2:
         rcv_params = []
@@ -277,7 +277,7 @@ class SaicApi:
         param3.param_value = b'\x00'
         rcv_params.append(param3)
 
-        return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x06', rcv_params)
+        return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x06', rcv_params, True)
 
     def start_ac_blowing(self, vin_info: VinInfo) -> MessageV2:
         rcv_params = []
@@ -301,7 +301,7 @@ class SaicApi:
         param4.param_value = b'\x00'
         rcv_params.append(param4)
 
-        return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x06', rcv_params)
+        return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x06', rcv_params, True)
 
     def stop_ac_blowing(self, vin_info: VinInfo) -> MessageV2:
         rcv_params = []
@@ -325,7 +325,7 @@ class SaicApi:
         param4.param_value = b'\x00'
         rcv_params.append(param4)
 
-        return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x06', rcv_params)
+        return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x06', rcv_params, True)
 
     def start_front_defrost(self, vin_info: VinInfo) -> MessageV2:
         rcv_params = []
@@ -349,7 +349,7 @@ class SaicApi:
         param4.param_value = b'\x00'
         rcv_params.append(param4)
 
-        return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x06', rcv_params)
+        return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x06', rcv_params, True)
 
     def stop_front_defrost(self, vin_info: VinInfo) -> MessageV2:
         rcv_params = []
@@ -373,19 +373,37 @@ class SaicApi:
         param4.param_value = b'\x00'
         rcv_params.append(param4)
 
-        return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x06', rcv_params)
+        return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x06', rcv_params, True)
 
-    def send_vehicle_ctrl_cmd_with_retry(self, vin_info: VinInfo, rvc_req_type: bytes, rvc_params: list) -> MessageV2:
+    def send_vehicle_ctrl_cmd_with_retry(self, vin_info: VinInfo, rvc_req_type: bytes, rvc_params: list,
+                                         has_app_data: bool) -> MessageV2:
         vehicle_control_cmd_rsp_msg = self.send_vehicle_control_command(vin_info, rvc_req_type, rvc_params)
-        while vehicle_control_cmd_rsp_msg.application_data is None:
-            if vehicle_control_cmd_rsp_msg.body.error_message is not None:
-                self.handle_error(vehicle_control_cmd_rsp_msg.body)
-            else:
-                logging.debug('API request returned no application data and no error message.')
-                time.sleep(float(AVG_SMS_DELIVERY_TIME))
 
-            vehicle_control_cmd_rsp_msg = self.send_vehicle_control_command(vin_info, rvc_req_type, rvc_params,
-                                                                            vehicle_control_cmd_rsp_msg.body.event_id)
+        if has_app_data:
+            while vehicle_control_cmd_rsp_msg.application_data is None:
+                if vehicle_control_cmd_rsp_msg.body.error_message is not None:
+                    self.handle_error(vehicle_control_cmd_rsp_msg.body)
+                else:
+                    logging.debug('API request returned no application data and no error message.')
+                    time.sleep(float(AVG_SMS_DELIVERY_TIME))
+
+                event_id = vehicle_control_cmd_rsp_msg.body.event_id
+                vehicle_control_cmd_rsp_msg = self.send_vehicle_control_command(vin_info, rvc_req_type, rvc_params,
+                                                                                event_id)
+        else:
+            retry = 1
+            while(
+                vehicle_control_cmd_rsp_msg.body.error_message is not None
+                and retry <= 3
+            ):
+                self.handle_error(vehicle_control_cmd_rsp_msg.body)
+                event_id = vehicle_control_cmd_rsp_msg.body.event_id
+                vehicle_control_cmd_rsp_msg = self.send_vehicle_control_command(vin_info, rvc_req_type, rvc_params,
+                                                                                event_id)
+                retry += 1
+            if vehicle_control_cmd_rsp_msg.body.error_message is not None:
+                raise SaicApiException(vehicle_control_cmd_rsp_msg.body.error_message.decode(),
+                                       vehicle_control_cmd_rsp_msg.body.result)
         return vehicle_control_cmd_rsp_msg
 
     def get_message_list_with_retry(self) -> list:
