@@ -2,6 +2,8 @@ from typing import cast
 
 from saic_ismart_client.common_model import Asn1Type, ApplicationData
 
+FIELD_FAILURE_TYPE = 'failureType'
+FIELD_RVC_REQ_STS = 'rvcReqSts'
 FIELD_VALUE = 'value'
 FIELD_ID = 'id'
 FIELD_VEHICLE_ALERTS = 'vehicleAlerts'
@@ -413,3 +415,33 @@ class OtaRvmVehicleStatusResp25857(ApplicationData):
 
     def is_engine_running(self) -> bool:
         return self.get_basic_vehicle_status().engine_status == 1
+
+
+class OtaRvcStatus25857(ApplicationData):
+    def __init__(self):
+        super().__init__('OTARVCStatus25857')
+        self.rvcReqType = None  # OCTET STRING(SIZE(1)),
+        self.rvcReqSts = None  # OCTET STRING(SIZE(1)),
+        self.failureType = None  # INTEGER(0..255) OPTIONAL,
+        self.gpsPosition = None  # RvsPosition(1),
+        self.basicVehicleStatus = None  # RvsBasicStatus25857(1)
+
+    def get_data(self) -> dict:
+        data = {
+            FIELD_RVC_REQ_TYPE: self.rvcReqType,
+            FIELD_RVC_REQ_STS: self.rvcReqSts,
+            FIELD_GPS_POSITION: self.gpsPosition.get_data(),
+            FIELD_BASIC_VEHICLE_STATUS: self.basicVehicleStatus.get_data()
+        }
+        self.add_optional_field_to_data(data, FIELD_FAILURE_TYPE, self.failureType)
+        return data
+
+    def init_from_dict(self, data: dict):
+        self.rvcReqType = data.get(FIELD_RVC_REQ_TYPE)
+        self.rvcReqSts = data.get(FIELD_RVC_REQ_STS)
+        self.gpsPosition = RvsPosition()
+        self.gpsPosition.init_from_dict(data.get(FIELD_GPS_POSITION))
+        self.basicVehicleStatus = RvsBasicStatus25857()
+        self.basicVehicleStatus.init_from_dict(data.get(FIELD_BASIC_VEHICLE_STATUS))
+        if FIELD_FAILURE_TYPE in data:
+            self.failureType = data.get(FIELD_FAILURE_TYPE)
