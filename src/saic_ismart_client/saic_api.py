@@ -70,10 +70,14 @@ class SaicApiException(Exception):
 
 
 class SaicApi:
-    def __init__(self, saic_uri: str, saic_user: str, saic_password: str):
+    def __init__(self, saic_uri: str, saic_user: str, saic_password: str, relogin_delay: int = None):
         self.saic_uri = saic_uri
         self.saic_user = saic_user
         self.saic_password = saic_password
+        if relogin_delay is None:
+            self.relogin_delay = 0
+        else:
+            self.relogin_delay = relogin_delay
         self.message_v1_1_coder = MessageCoderV11()
         self.message_V2_1_coder = MessageCoderV21()
         self.message_V3_0_coder = MessageCoderV30()
@@ -409,7 +413,8 @@ class SaicApi:
             if rsp_msg.body.error_message is not None:
                 self.handle_error(rsp_msg.body)
             else:
-                raise SaicApiException('API request returned no application data and no error message.')
+                logging.debug('API request returned no application data and no error message.')
+                time.sleep(float(AVG_SMS_DELIVERY_TIME))
 
             rsp_msg = func
         return rsp_msg
@@ -587,6 +592,10 @@ class SaicApi:
         if message_body.result == 2:
             # re-login
             logging.debug(message)
+            if self.relogin_delay > 0:
+                logging.warning(f'The SAIC user has been logged out. '
+                                + f'Waiting {self.relogin_delay} seconds before attempting another login')
+                time.sleep(float(self.relogin_delay))
             self.login()
         elif message_body.result == 4:
             # please try again later
