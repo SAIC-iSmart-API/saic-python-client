@@ -237,6 +237,140 @@ class SaicApi:
 
         self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x20', rvc_params)
 
+    def start_ac(self, vin_info: VinInfo):
+        rcv_params = []
+        param1 = RvcReqParam()
+        param1.param_id = 19
+        param1.param_value = b'\x02'
+        rcv_params.append(param1)
+
+        param2 = RvcReqParam()
+        param2.param_id = 20
+        param2.param_value = b'\x08'
+        rcv_params.append(param2)
+
+        param3 = RvcReqParam()
+        param3.param_id = 255
+        param3.param_value = b'\x00'
+        rcv_params.append(param3)
+
+        self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x06', rcv_params)
+
+    def stop_ac(self, vin_info: VinInfo):
+        rcv_params = []
+        param1 = RvcReqParam()
+        param1.param_id = 19
+        param1.param_value = b'\x00'
+        rcv_params.append(param1)
+
+        param2 = RvcReqParam()
+        param2.param_id = 20
+        param2.param_value = b'\x00'
+        rcv_params.append(param2)
+
+        param3 = RvcReqParam()
+        param3.param_id = 255
+        param3.param_value = b'\x00'
+        rcv_params.append(param3)
+
+        self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x06', rcv_params)
+
+    def start_ac_blowing(self, vin_info: VinInfo):
+        rcv_params = []
+        param1 = RvcReqParam()
+        param1.param_id = 19
+        param1.param_value = b'\x01'
+        rcv_params.append(param1)
+
+        param2 = RvcReqParam()
+        param2.param_id = 20
+        param2.param_value = b'\x00'
+        rcv_params.append(param2)
+
+        param3 = RvcReqParam()
+        param3.param_id = 22
+        param3.param_value = b'\x01'
+        rcv_params.append(param3)
+
+        param4 = RvcReqParam()
+        param4.param_id = 255
+        param4.param_value = b'\x00'
+        rcv_params.append(param4)
+
+        self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x06', rcv_params)
+
+    def stop_ac_blowing(self, vin_info: VinInfo):
+        rcv_params = []
+        param1 = RvcReqParam()
+        param1.param_id = 19
+        param1.param_value = b'\x00'
+        rcv_params.append(param1)
+
+        param2 = RvcReqParam()
+        param2.param_id = 20
+        param2.param_value = b'\x00'
+        rcv_params.append(param2)
+
+        param3 = RvcReqParam()
+        param3.param_id = 22
+        param3.param_value = b'\x00'
+        rcv_params.append(param3)
+
+        param4 = RvcReqParam()
+        param4.param_id = 255
+        param4.param_value = b'\x00'
+        rcv_params.append(param4)
+
+        self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x06', rcv_params)
+
+    def start_front_defrost(self, vin_info: VinInfo):
+        rcv_params = []
+        param1 = RvcReqParam()
+        param1.param_id = 19
+        param1.param_value = b'\x05'
+        rcv_params.append(param1)
+
+        param2 = RvcReqParam()
+        param2.param_id = 20
+        param2.param_value = b'\x08'
+        rcv_params.append(param2)
+
+        param3 = RvcReqParam()
+        param3.param_id = 22
+        param3.param_value = b'\x01'
+        rcv_params.append(param3)
+
+        param4 = RvcReqParam()
+        param4.param_id = 255
+        param4.param_value = b'\x00'
+        rcv_params.append(param4)
+
+        self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x06', rcv_params)
+
+    def stop_front_defrost(self, vin_info: VinInfo):
+        rcv_params = []
+        param1 = RvcReqParam()
+        param1.param_id = 19
+        param1.param_value = b'\x00'
+        rcv_params.append(param1)
+
+        param2 = RvcReqParam()
+        param2.param_id = 20
+        param2.param_value = b'\x08'
+        rcv_params.append(param2)
+
+        param3 = RvcReqParam()
+        param3.param_id = 22
+        param3.param_value = b'\x00'
+        rcv_params.append(param3)
+
+        param4 = RvcReqParam()
+        param4.param_id = 255
+        param4.param_value = b'\x00'
+        rcv_params.append(param4)
+
+        self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x06', rcv_params)
+
     def send_vehicle_ctrl_cmd_with_retry(self, vin_info: VinInfo, rvc_req_type: bytes, rvc_params: list) -> None:
         vehicle_control_cmd_rsp_msg = self.send_vehicle_control_command(vin_info, rvc_req_type, rvc_params)
         retry = 1
