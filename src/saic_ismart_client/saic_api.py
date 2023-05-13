@@ -407,7 +407,7 @@ class SaicApi:
         if vin_info:
             rsp = func(vin_info)
         else:
-            rsp = func
+            rsp = func()
         rsp_msg = cast(AbstractMessage, rsp)
         while rsp_msg.application_data is None:
             if rsp_msg.body.error_message is not None:
@@ -416,7 +416,10 @@ class SaicApi:
                 logging.debug('API request returned no application data and no error message.')
                 time.sleep(float(AVG_SMS_DELIVERY_TIME))
 
-            rsp_msg = func
+            if vin_info:
+                rsp_msg = func(vin_info, rsp_msg.body.event_id)
+            else:
+                rsp_msg = func(rsp_msg.body.event_id)
         return rsp_msg
 
     def send_vehicle_control_command(self, vin_info: VinInfo, rvc_req_type: bytes, rvc_params: list,
