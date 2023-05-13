@@ -11,7 +11,7 @@ from saic_ismart_client.ota_v1_1.data_model import MessageV11, MpUserLoggingInRs
     MpAlarmSettingType
 from saic_ismart_client.ota_v2_1.Message import MessageCoderV21
 from saic_ismart_client.ota_v2_1.data_model import OtaRvmVehicleStatusResp25857, RvsPosition, RvsWayPoint,\
-    RvsWgs84Point, Timestamp4Short, RvsBasicStatus25857
+    RvsWgs84Point, Timestamp4Short, RvsBasicStatus25857, OtaRvcStatus25857
 from saic_ismart_client.ota_v3_0.Message import MessageBodyV30, MessageV30, MessageCoderV30
 from saic_ismart_client.ota_v3_0.data_model import OtaChrgMangDataResp, RvsChargingStatus
 
@@ -195,6 +195,59 @@ def mock_chrg_mgmt_data_rsp(message_v3_0_coder: MessageCoderV30, uid: str, token
     return message_v3_0_coder.encode_request(chrg_mgmt_data_rsp_msg)
 
 
+def mock_start_ac_rsp_msg(message_coder_v2_1, UID, TOKEN, vin_info):
+    start_ac_rsp = OtaRvcStatus25857()
+    start_ac_rsp.rvcReqType = b'\x06'
+    start_ac_rsp.rvcReqSts = b'\x01'
+    start_ac_rsp.failureType = 0
+    start_ac_rsp.gpsPosition = RvsPosition()
+    start_ac_rsp.gpsPosition.way_point = RvsWayPoint()
+    start_ac_rsp.gpsPosition.way_point.position = RvsWgs84Point()
+    start_ac_rsp.gpsPosition.way_point.position.latitude = 10000000
+    start_ac_rsp.gpsPosition.way_point.position.longitude = 10000000
+    start_ac_rsp.gpsPosition.way_point.position.altitude = 100
+    start_ac_rsp.gpsPosition.way_point.heading = 90
+    start_ac_rsp.gpsPosition.way_point.speed = 100
+    start_ac_rsp.gpsPosition.way_point.hdop = 10
+    start_ac_rsp.gpsPosition.way_point.satellites = 3
+    start_ac_rsp.gpsPosition.timestamp_4_short = Timestamp4Short()
+    start_ac_rsp.gpsPosition.timestamp_4_short.seconds = 1000000000
+    start_ac_rsp.gpsPosition.gps_status = 'fix3D'
+    start_ac_rsp.basicVehicleStatus = RvsBasicStatus25857()
+    start_ac_rsp.basicVehicleStatus.driver_door = False
+    start_ac_rsp.basicVehicleStatus.passenger_door = False
+    start_ac_rsp.basicVehicleStatus.rear_left_door = False
+    start_ac_rsp.basicVehicleStatus.rear_right_door = False
+    start_ac_rsp.basicVehicleStatus.boot_status = True
+    start_ac_rsp.basicVehicleStatus.bonnet_status = False
+    start_ac_rsp.basicVehicleStatus.lock_status = True
+    start_ac_rsp.basicVehicleStatus.side_light_status = False
+    start_ac_rsp.basicVehicleStatus.dipped_beam_status = False
+    start_ac_rsp.basicVehicleStatus.main_beam_status = False
+    start_ac_rsp.basicVehicleStatus.power_mode = 1
+    start_ac_rsp.basicVehicleStatus.last_key_seen = 32000
+    start_ac_rsp.basicVehicleStatus.current_journey_distance = 7
+    start_ac_rsp.basicVehicleStatus.current_journey_id = 42
+    start_ac_rsp.basicVehicleStatus.interior_temperature = 22
+    start_ac_rsp.basicVehicleStatus.exterior_temperature = 10
+    start_ac_rsp.basicVehicleStatus.fuel_level_prc = 125
+    start_ac_rsp.basicVehicleStatus.fuel_range = 32000
+    start_ac_rsp.basicVehicleStatus.remote_climate_status = 7
+    start_ac_rsp.basicVehicleStatus.can_bus_active = False
+    start_ac_rsp.basicVehicleStatus.time_of_last_canbus_activity = 1000000000
+    start_ac_rsp.basicVehicleStatus.clstr_dspd_fuel_lvl_sgmt = 125
+    start_ac_rsp.basicVehicleStatus.mileage = 1000
+    start_ac_rsp.basicVehicleStatus.battery_voltage = 32000
+    start_ac_rsp.basicVehicleStatus.hand_brake = True
+    start_ac_rsp.basicVehicleStatus.veh_elec_rng_dsp = 125
+    start_ac_rsp.basicVehicleStatus.rmt_htd_rr_wnd_st = 125
+    start_ac_rsp.basicVehicleStatus.engine_status = 0
+    start_ac_rsp.basicVehicleStatus.extended_data2 = 0  # is charging
+    start_ac_rsp.basicVehicleStatus.fuel_range_elec = 32000
+    start_ac_rsp_msg = MessageV2(MessageBodyV2(), start_ac_rsp)
+    return message_coder_v2_1.encode_request(start_ac_rsp_msg)
+
+
 def mock_response(mocked_post, hex_value: str):
     def res():
         r = requests.Response()
@@ -250,3 +303,12 @@ class TestSaicApi(TestCase):
         chrg_mgmt_data_rsp_msg = self.saic_api.get_charging_status_with_retry(vin_info)
         app_data = cast(OtaChrgMangDataResp, chrg_mgmt_data_rsp_msg.application_data)
         self.assertEqual(1023, app_data.bmsChrgOtptCrntReq)
+
+    @patch.object(requests, 'post')
+    def test_start_ac(self, mocked_post):
+        vin_info = create_vin_info(VIN)
+        mock_response(mocked_post, mock_start_ac_rsp_msg(self.message_coder_v2_1, UID, TOKEN, vin_info))
+
+        start_ac_rsp_msg = self.saic_api.start_ac()
+        app_data = cast(OtaRvcStatus25857, start_ac_rsp_msg.application_data)
+        self.assertEqual(app_data.rvcReqType, b'\x06')
