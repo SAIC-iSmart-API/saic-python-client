@@ -127,20 +127,29 @@ class AbstractMessageBody(Asn1Type):
         return data
 
     def init_from_dict(self, data: dict):
-        self.uid = data.get(FIELD_UID)
-        self.token = data.get(FIELD_TOKEN)
+        if FIELD_UID in data:
+            self.uid = data.get(FIELD_UID)
+        if FIELD_TOKEN in data:
+            self.token = data.get(FIELD_TOKEN)
         self.application_id = data.get(FIELD_APPLICATION_ID)
-        self.vin = data.get(FIELD_VIN)
+        if FIELD_VIN in data:
+            self.vin = data.get(FIELD_VIN)
         self.event_creation_time = data.get(FIELD_EVENT_CREATION_TIME)
-        self.event_id = data.get(FIELD_EVENT_ID)
+        if FIELD_EVENT_ID in data:
+            self.event_id = data.get(FIELD_EVENT_ID)
         self.message_id = data.get(FIELD_MESSAGE_ID)
-        self.ack_required = data.get(FIELD_ACK_REQUIRED)
+        if FIELD_ACK_REQUIRED in data:
+            self.ack_required = data.get(FIELD_ACK_REQUIRED)
         self.application_data_length = data.get(FIELD_APPLICATION_DATA_LENGTH)
-        self.application_data_encoding = data.get(FIELD_APPLICATION_DATA_ENCODING)
+        if FIELD_APPLICATION_DATA_ENCODING in data:
+            self.application_data_encoding = data.get(FIELD_APPLICATION_DATA_ENCODING)
         self.application_data_protocol_version = data.get(FIELD_APPLICATION_DATA_PROTOCOL_VERSION)
-        self.test_flag = data.get(FIELD_TEST_FLAG)
-        self.result = data.get(FIELD_RESULT)
-        self.error_message = data.get(FIELD_ERROR_MESSAGE)
+        if FIELD_TEST_FLAG in data:
+            self.test_flag = data.get(FIELD_TEST_FLAG)
+        if FIELD_RESULT in data:
+            self.result = data.get(FIELD_RESULT)
+        if FIELD_ERROR_MESSAGE in data:
+            self.error_message = data.get(FIELD_ERROR_MESSAGE)
 
 
 class MessageBodyV1(AbstractMessageBody):
