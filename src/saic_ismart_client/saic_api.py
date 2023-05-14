@@ -617,6 +617,8 @@ class SaicApi:
             # please try again later
             logging.debug(message)
             time.sleep(float(AVG_SMS_DELIVERY_TIME))
+        elif message_body.result == -1:
+            logging.warning(message)
         else:
             logging.error(message)
 

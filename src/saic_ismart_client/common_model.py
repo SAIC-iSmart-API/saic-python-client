@@ -423,10 +423,17 @@ class MessageCoderV2(AbstractMessageCoder):
 
         decoded_message.reserved = buffered_message_bytes.read(self.reserved_size)
 
-        dispatcher_message_bytes = buffered_message_bytes.read(header.dispatcher_message_length - self.header_length)
-        message_body_dict = self.asn1_tool_uper.decode('MPDispatcherBody', dispatcher_message_bytes)
-        message_body = decoded_message.body
-        message_body.init_from_dict(message_body_dict)
+        if header.protocol_version == 32:
+            message_body = decoded_message.body
+            message_body.application_data_length = 0
+            message_body.result = -1
+            message_body.error_message = 'Skipping unknown protocol version 32'.encode()
+        else:
+            dispatcher_message_bytes = buffered_message_bytes.read(
+                header.dispatcher_message_length - self.header_length)
+            message_body_dict = self.asn1_tool_uper.decode('MPDispatcherBody', dispatcher_message_bytes)
+            message_body = decoded_message.body
+            message_body.init_from_dict(message_body_dict)
 
         if message_body.application_data_length > 0:
             application_data_bytes = buffered_message_bytes.read(message_body.application_data_length)
