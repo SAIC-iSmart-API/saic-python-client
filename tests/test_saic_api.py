@@ -246,6 +246,7 @@ def mock_start_ac_rsp_msg(message_coder_v2_1: MessageCoderV21, uid: str, token: 
     start_ac_rsp.basicVehicleStatus.fuel_range_elec = 32000
     start_ac_rsp_msg = MessageV2(MessageBodyV2(), start_ac_rsp)
     message_coder_v2_1.initialize_message(uid, token, vin_info.vin, '510', 25857, 1, start_ac_rsp_msg)
+    start_ac_rsp_msg.body.ack_required = False
     return message_coder_v2_1.encode_request(start_ac_rsp_msg)
 
 
@@ -313,3 +314,4 @@ class TestSaicApi(TestCase):
         start_ac_rsp_msg = self.saic_api.start_ac(vin_info)
         app_data = cast(OtaRvcStatus25857, start_ac_rsp_msg.application_data)
         self.assertEqual(app_data.rvcReqType, b'\x06')
+        self.assertEqual(start_ac_rsp_msg.body.ack_required, False)
