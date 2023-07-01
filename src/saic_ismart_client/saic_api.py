@@ -13,7 +13,7 @@ from saic_ismart_client.ota_v1_1.data_model import VinInfo, MpUserLoggingInReq, 
     MpAlarmSettingType, AlarmSwitch, MessageBodyV11, MessageV11, MessageListReq, StartEndNumber, MessageListResp, \
     Timestamp, Message, AbortSendMessageReq
 from saic_ismart_client.ota_v2_1.Message import MessageCoderV21
-from saic_ismart_client.ota_v2_1.data_model import OtaRvmVehicleStatusReq, OtaRvmVehicleStatusResp25857, OtaRvcReq,\
+from saic_ismart_client.ota_v2_1.data_model import OtaRvmVehicleStatusReq, OtaRvmVehicleStatusResp25857, OtaRvcReq, \
     RvcReqParam, OtaRvcStatus25857
 from saic_ismart_client.ota_v3_0.Message import MessageCoderV30, MessageV30, MessageBodyV30
 from saic_ismart_client.ota_v3_0.data_model import OtaChrgMangDataResp
@@ -44,7 +44,7 @@ class SaicMessage:
             return 'read'
 
     def get_details(self) -> str:
-        return f'ID: {self.message_id}, Time: {self.message_time}, Type: {self.message_type}, Title: {self.title}, '\
+        return f'ID: {self.message_id}, Time: {self.message_time}, Type: {self.message_type}, Title: {self.title}, ' \
             + f'Content: {self.content}, Status: {self.get_read_status_str()}, Sender: {self.sender}, VIN: {self.vin}'
 
 
@@ -180,6 +180,15 @@ class SaicApi:
     def get_vehicle_status_with_retry(self, vin_info: VinInfo) -> MessageV2:
         return self.handle_retry(self.get_vehicle_status, vin_info)
 
+    def unknown_engine_control(self, vin_info: VinInfo) -> MessageV2:
+        rvc_params = []
+        param1 = RvcReqParam()
+        param1.param_id = 16
+        param1.param_value = b'\x01'
+        rvc_params.append(param1)
+
+        return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x11', rvc_params, True)
+
     def lock_vehicle(self, vin_info: VinInfo) -> MessageV2:
         rvc_params = []
         return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x01', rvc_params, False)
@@ -214,24 +223,16 @@ class SaicApi:
         return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x02', rvc_params, False)
 
     def start_rear_window_heat(self, vin_info: VinInfo) -> MessageV2:
-        rvc_params = []
-        param1 = RvcReqParam()
-        param1.param_id = 23
-        param1.param_value = b'\x01'
-        rvc_params.append(param1)
-
-        param2 = RvcReqParam()
-        param2.param_id = 255
-        param2.param_value = b'\x00'
-        rvc_params.append(param2)
-
-        return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x20', rvc_params, False)
+        return self.__control_rear_window_heat(vin_info, True)
 
     def stop_rear_window_heat(self, vin_info: VinInfo) -> MessageV2:
+        return self.__control_rear_window_heat(vin_info, False)
+
+    def __control_rear_window_heat(self, vin_info: VinInfo, enable: bool) -> MessageV2:
         rvc_params = []
         param1 = RvcReqParam()
         param1.param_id = 23
-        param1.param_value = b'\x00'
+        param1.param_value = bool_to_bit(enable)
         rvc_params.append(param1)
 
         param2 = RvcReqParam()
@@ -240,6 +241,24 @@ class SaicApi:
         rvc_params.append(param2)
 
         return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x20', rvc_params, False)
+
+    def control_heated_seats(self, vin_info: VinInfo, driver_side=True, passenger_side=True):
+        rcv_params = []
+        param1 = RvcReqParam()
+        param1.param_id = 17
+        param1.param_value = bool_to_bit(driver_side)
+        rcv_params.append(param1)
+
+        param2 = RvcReqParam()
+        param2.param_id = 18
+        param2.param_value = bool_to_bit(passenger_side)
+        rcv_params.append(param2)
+
+        param3 = RvcReqParam()
+        param3.param_id = 255
+        param3.param_value = b'\x00'
+        rcv_params.append(param3)
+        return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x05', rcv_params, True)
 
     def start_ac(self, vin_info: VinInfo) -> MessageV2:
         rcv_params = []
@@ -261,47 +280,10 @@ class SaicApi:
         return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x06', rcv_params, True)
 
     def stop_ac(self, vin_info: VinInfo) -> MessageV2:
-        rcv_params = []
-        param1 = RvcReqParam()
-        param1.param_id = 19
-        param1.param_value = b'\x00'
-        rcv_params.append(param1)
-
-        param2 = RvcReqParam()
-        param2.param_id = 20
-        param2.param_value = b'\x00'
-        rcv_params.append(param2)
-
-        param3 = RvcReqParam()
-        param3.param_id = 255
-        param3.param_value = b'\x00'
-        rcv_params.append(param3)
-
-        return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x06', rcv_params, True)
+        return self.control_climate(vin_info, fan_speed=0, ac_on=False, temperature_idx=0)
 
     def start_ac_blowing(self, vin_info: VinInfo) -> MessageV2:
-        rcv_params = []
-        param1 = RvcReqParam()
-        param1.param_id = 19
-        param1.param_value = b'\x01'
-        rcv_params.append(param1)
-
-        param2 = RvcReqParam()
-        param2.param_id = 20
-        param2.param_value = b'\x00'
-        rcv_params.append(param2)
-
-        param3 = RvcReqParam()
-        param3.param_id = 22
-        param3.param_value = b'\x01'
-        rcv_params.append(param3)
-
-        param4 = RvcReqParam()
-        param4.param_id = 255
-        param4.param_value = b'\x00'
-        rcv_params.append(param4)
-
-        return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x06', rcv_params, True)
+        return self.control_climate(vin_info, fan_speed=1, ac_on=False, temperature_idx=0)
 
     def stop_ac_blowing(self, vin_info: VinInfo) -> MessageV2:
         rcv_params = []
@@ -328,28 +310,7 @@ class SaicApi:
         return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x06', rcv_params, True)
 
     def start_front_defrost(self, vin_info: VinInfo) -> MessageV2:
-        rcv_params = []
-        param1 = RvcReqParam()
-        param1.param_id = 19
-        param1.param_value = b'\x05'
-        rcv_params.append(param1)
-
-        param2 = RvcReqParam()
-        param2.param_id = 20
-        param2.param_value = b'\x08'
-        rcv_params.append(param2)
-
-        param3 = RvcReqParam()
-        param3.param_id = 22
-        param3.param_value = b'\x01'
-        rcv_params.append(param3)
-
-        param4 = RvcReqParam()
-        param4.param_id = 255
-        param4.param_value = b'\x00'
-        rcv_params.append(param4)
-
-        return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x06', rcv_params, True)
+        return self.control_climate(vin_info, fan_speed=5, ac_on=True, temperature_idx=8)
 
     def stop_front_defrost(self, vin_info: VinInfo) -> MessageV2:
         rcv_params = []
@@ -375,6 +336,129 @@ class SaicApi:
 
         return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x06', rcv_params, True)
 
+    def control_climate(
+            self,
+            vin_info: VinInfo,
+            fan_speed: int = 5,
+            ac_on: bool = True,
+            temperature_idx: int = 8
+    ) -> MessageV2:
+
+        if fan_speed < 0 or fan_speed > 5:
+            raise Exception('fan_speed must be between 0 and 5')
+
+        if temperature_idx < 0 or temperature_idx > 14:
+            raise Exception('temperature_idx must be between 0 and 14')
+
+        if fan_speed == 0:
+            ac_on = False
+            temperature_idx = 8
+
+        rcv_params = []
+        param1 = RvcReqParam()
+        param1.param_id = 19
+        param1.param_value = fan_speed.to_bytes(1, 'big')
+        rcv_params.append(param1)
+
+        if fan_speed > 0:
+            param2 = RvcReqParam()
+            param2.param_id = 20
+            param2.param_value = temperature_idx.to_bytes(1, 'big')
+            rcv_params.append(param2)
+
+        param3 = RvcReqParam()
+        param3.param_id = 22
+        param3.param_value = bool_to_bit(ac_on)
+        rcv_params.append(param3)
+
+        param4 = RvcReqParam()
+        param4.param_id = 255
+        param4.param_value = b'\x00'
+        rcv_params.append(param4)
+        return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x06', rcv_params, True)
+
+    def close_driver_window(self, vin_info: VinInfo) -> MessageV2:
+        rcv_params = []
+        param1 = RvcReqParam()
+        param1.param_id = 9
+        param1.param_value = b'\x01'
+        rcv_params.append(param1)
+
+        for i in [10, 11, 12, 13, 255]:
+            param = RvcReqParam()
+            param.param_id = i
+            param.param_value = b'\x00'
+            rcv_params.append(param)
+
+        return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x03', rcv_params, False)
+
+    def control_sunroof(self, should_open: bool, vin_info: VinInfo) -> MessageV2:
+        rcv_params = []
+        param1 = RvcReqParam()
+        param1.param_id = 8
+        param1.param_value = b'\x01'
+        rcv_params.append(param1)
+
+        for i in [9, 10, 11, 12, 255]:
+            param = RvcReqParam()
+            param.param_id = i
+            param.param_value = b'\x00'
+            rcv_params.append(param)
+
+        param = RvcReqParam()
+        param.param_id = 13
+        param.param_value = b'\x03' if should_open else b'\x00'
+        rcv_params.append(param)
+
+        return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x03', rcv_params, True)
+
+    def open_door_locks(self, vin_info: VinInfo) -> MessageV2:
+        return self.__open_vehicle_lock(vin_info, 3)
+
+    def open_tailgate(self, vin_info: VinInfo) -> MessageV2:
+        return self.__open_vehicle_lock(vin_info, 2)
+
+    def __open_vehicle_lock(self, vin_info: VinInfo, lock_id: int) -> MessageV2:
+        rcv_params = []
+
+        for i in [4, 5, 6, 255]:
+            param = RvcReqParam()
+            param.param_id = i
+            param.param_value = b'\x00'
+            rcv_params.append(param)
+
+        param1 = RvcReqParam()
+        param1.param_id = 7
+        param1.param_value = lock_id.to_bytes(1, 'big')
+        rcv_params.append(param1)
+
+        return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x02', rcv_params, False)
+
+    def find_my_car(self, vin_info: VinInfo, with_horn: bool = True, with_lights: bool = True) -> MessageV2:
+        rcv_params = []
+
+        param = RvcReqParam()
+        param.param_id = 1
+        param.param_value = b'\x01'
+        rcv_params.append(param)
+
+        param = RvcReqParam()
+        param.param_id = 2
+        param.param_value = bool_to_bit(with_horn)
+        rcv_params.append(param)
+
+        param = RvcReqParam()
+        param.param_id = 3
+        param.param_value = bool_to_bit(with_lights)
+        rcv_params.append(param)
+
+        param = RvcReqParam()
+        param.param_id = 255
+        param.param_value = b'\x00'
+        rcv_params.append(param)
+
+        return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x00', rcv_params, True)
+
     def send_vehicle_ctrl_cmd_with_retry(self, vin_info: VinInfo, rvc_req_type: bytes, rvc_params: list,
                                          has_app_data: bool) -> MessageV2:
         vehicle_control_cmd_rsp_msg = self.send_vehicle_control_command(vin_info, rvc_req_type, rvc_params)
@@ -392,9 +476,9 @@ class SaicApi:
                                                                                 event_id)
         else:
             retry = 1
-            while(
-                vehicle_control_cmd_rsp_msg.body.error_message is not None
-                and retry <= 3
+            while (
+                    vehicle_control_cmd_rsp_msg.body.error_message is not None
+                    and retry <= 3
             ):
                 self.handle_error(vehicle_control_cmd_rsp_msg.body)
                 event_id = vehicle_control_cmd_rsp_msg.body.event_id
@@ -601,10 +685,10 @@ class SaicApi:
         return self.token
 
     def handle_error(self, message_body: AbstractMessageBody):
-        message = f'application ID: {message_body.application_id},'\
-              + f' protocol version: {message_body.application_data_protocol_version},'\
-              + f' message: {message_body.error_message.decode()}'\
-              + f' result code: {message_body.result}'
+        message = f'application ID: {message_body.application_id},' \
+                  + f' protocol version: {message_body.application_data_protocol_version},' \
+                  + f' message: {message_body.error_message.decode()}' \
+                  + f' result code: {message_body.result}'
 
         if message_body.result == 2:
             # re-login
@@ -622,6 +706,10 @@ class SaicApi:
             logging.warning(message)
         else:
             logging.error(message)
+
+
+def bool_to_bit(flag):
+    return b'\x01' if flag else b'\x00'
 
 
 def hash_md5(password: str) -> str:
