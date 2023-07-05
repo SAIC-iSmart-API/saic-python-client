@@ -3,24 +3,32 @@ import hashlib
 import logging
 import time
 import urllib.parse
+from enum import Enum
 from typing import cast
 
 import requests as requests
 
-from saic_ismart_client.common_model import MessageV2, MessageBodyV2, Header, AbstractMessageBody, AbstractMessage
+from saic_ismart_client.common_model import AbstractMessage, AbstractMessageBody, Header, MessageBodyV2, MessageV2
 from saic_ismart_client.ota_v1_1.Message import MessageCoderV11
-from saic_ismart_client.ota_v1_1.data_model import VinInfo, MpUserLoggingInReq, MpUserLoggingInRsp, AlarmSwitchReq, \
-    MpAlarmSettingType, AlarmSwitch, MessageBodyV11, MessageV11, MessageListReq, StartEndNumber, MessageListResp, \
-    Timestamp, Message, AbortSendMessageReq
+from saic_ismart_client.ota_v1_1.data_model import AbortSendMessageReq, AlarmSwitch, AlarmSwitchReq, Message, \
+    MessageBodyV11, MessageListReq, MessageListResp, MessageV11, MpAlarmSettingType, MpUserLoggingInReq, \
+    MpUserLoggingInRsp, StartEndNumber, Timestamp, VinInfo
 from saic_ismart_client.ota_v2_1.Message import MessageCoderV21
-from saic_ismart_client.ota_v2_1.data_model import OtaRvmVehicleStatusReq, OtaRvmVehicleStatusResp25857, OtaRvcReq, \
-    RvcReqParam, OtaRvcStatus25857
-from saic_ismart_client.ota_v3_0.Message import MessageCoderV30, MessageV30, MessageBodyV30
-from saic_ismart_client.ota_v3_0.data_model import OtaChrgMangDataResp
+from saic_ismart_client.ota_v2_1.data_model import OtaRvcReq, OtaRvcStatus25857, OtaRvmVehicleStatusReq, \
+    OtaRvmVehicleStatusResp25857, RvcReqParam
+from saic_ismart_client.ota_v3_0.Message import MessageBodyV30, MessageCoderV30, MessageV30
+from saic_ismart_client.ota_v3_0.data_model import OtaChrgCtrlReq, OtaChrgCtrlStsResp, OtaChrgHeatReq, OtaChrgHeatResp, \
+    OtaChrgMangDataResp, OtaChrgRsvanReq, OtaChrgSetngReq, OtaChrgSetngResp, OtaCrgRsvanResp
 
 UID_INIT = '0000000000000000000000000000000000000000000000000#'
 AVG_SMS_DELIVERY_TIME = 15
 logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
+
+
+class ScheduledChargingMode(Enum):
+    DISABLED = 2,
+    UNTIL_CONFIGURED_SOC = 3,
+    UNTIL_FULL = 1,
 
 
 class SaicMessage:
@@ -554,6 +562,8 @@ class SaicApi:
                                    vehicle_control_cmd_rsp_msg.get_data())
         return vehicle_control_cmd_rsp_msg
 
+    ## CHARGING MANAGEMENT
+
     def get_charging_status(self, vin_info: VinInfo, event_id: str = None) -> MessageV30:
         chrg_mgmt_data_req_msg = MessageV30(MessageBodyV30())
         application_id = '516'
@@ -576,6 +586,131 @@ class SaicApi:
     def get_charging_status_with_retry(self, vin_info: VinInfo) -> MessageV30:
         return self.handle_retry(self.get_charging_status, vin_info)
 
+    def control_battery_heating(self, enable: bool, vin_info: VinInfo, event_id: str = None) -> MessageV30:
+        chrg_heat_req = OtaChrgHeatReq()
+        chrg_heat_req.ptcHeatReq = bool_to_bit(enable)
+        chrg_heat_req_msg = MessageV30(MessageBodyV30(), chrg_heat_req)
+        application_id = '516'
+        application_data_protocol_version = 768
+        self.message_V3_0_coder.initialize_message(self.uid, self.get_token(), vin_info.vin, application_id,
+                                                   application_data_protocol_version, 9, chrg_heat_req_msg)
+        if event_id is not None:
+            chrg_heat_req_msg.body.event_id = event_id
+        self.publish_json_request(application_id, application_data_protocol_version, chrg_heat_req_msg.get_data())
+        chrg_heat_req_msg_hex = self.message_V3_0_coder.encode_request(chrg_heat_req_msg)
+        self.publish_raw_request(application_id, application_data_protocol_version, chrg_heat_req_msg_hex)
+        chrg_heat_rsp_msg_hex = self.send_request(chrg_heat_req_msg_hex,
+                                                  urllib.parse.urljoin(self.saic_uri, '/TAP.Web/ota.mpv30'))
+        self.publish_raw_response(application_id, application_data_protocol_version, chrg_heat_rsp_msg_hex)
+        chrg_heat_rsp_msg = MessageV30(MessageBodyV30(), OtaChrgHeatResp())
+        self.message_V3_0_coder.decode_response(chrg_heat_rsp_msg_hex, chrg_heat_rsp_msg)
+        self.publish_json_response(application_id, application_data_protocol_version, chrg_heat_rsp_msg.get_data())
+        return chrg_heat_rsp_msg
+
+    def control_charging_port_lock(self, unlock: bool, vin_info: VinInfo, event_id: str = None):
+        chrg_ctrl_req = OtaChrgCtrlReq()
+        chrg_ctrl_req.chrgCtrlReq = 0
+        chrg_ctrl_req.tboxV2XReq = 0
+        chrg_ctrl_req.tboxEleccLckCtrlReq = bool_to_bit(unlock)
+        chrg_ctrl_req_msg = MessageV30(MessageBodyV30(), chrg_ctrl_req)
+        application_id = '516'
+        application_data_protocol_version = 768
+        self.message_V3_0_coder.initialize_message(self.uid, self.get_token(), vin_info.vin, application_id,
+                                                   application_data_protocol_version, 7, chrg_ctrl_req_msg)
+        if event_id is not None:
+            chrg_ctrl_req_msg.body.event_id = event_id
+        self.publish_json_request(application_id, application_data_protocol_version, chrg_ctrl_req_msg.get_data())
+        chrg_ctrl_req_msg_hex = self.message_V3_0_coder.encode_request(chrg_ctrl_req_msg)
+        self.publish_raw_request(application_id, application_data_protocol_version, chrg_ctrl_req_msg_hex)
+        chrg_ctrl_rsp_msg_hex = self.send_request(chrg_ctrl_req_msg_hex,
+                                                  urllib.parse.urljoin(self.saic_uri, '/TAP.Web/ota.mpv30'))
+        self.publish_raw_response(application_id, application_data_protocol_version, chrg_ctrl_rsp_msg_hex)
+        chrg_ctrl_rsp_msg = MessageV30(MessageBodyV30(), OtaChrgCtrlStsResp())
+        self.message_V3_0_coder.decode_response(chrg_ctrl_rsp_msg_hex, chrg_ctrl_rsp_msg)
+        self.publish_json_response(application_id, application_data_protocol_version, chrg_ctrl_rsp_msg.get_data())
+        return chrg_ctrl_rsp_msg
+
+    def control_charging(self, stop_charging: bool, vin_info: VinInfo, event_id: str = None):
+        chrg_ctrl_req = OtaChrgCtrlReq()
+        chrg_ctrl_req.chrgCtrlReq = bool_to_bit(stop_charging)
+        chrg_ctrl_req.tboxV2XReq = 0
+        chrg_ctrl_req.tboxEleccLckCtrlReq = 0
+        chrg_ctrl_req_msg = MessageV30(MessageBodyV30(), chrg_ctrl_req)
+        application_id = '516'
+        application_data_protocol_version = 768
+        self.message_V3_0_coder.initialize_message(self.uid, self.get_token(), vin_info.vin, application_id,
+                                                   application_data_protocol_version, 7, chrg_ctrl_req_msg)
+        if event_id is not None:
+            chrg_ctrl_req_msg.body.event_id = event_id
+        self.publish_json_request(application_id, application_data_protocol_version, chrg_ctrl_req_msg.get_data())
+        chrg_ctrl_req_msg_hex = self.message_V3_0_coder.encode_request(chrg_ctrl_req_msg)
+        self.publish_raw_request(application_id, application_data_protocol_version, chrg_ctrl_req_msg_hex)
+        chrg_ctrl_rsp_msg_hex = self.send_request(chrg_ctrl_req_msg_hex,
+                                                  urllib.parse.urljoin(self.saic_uri, '/TAP.Web/ota.mpv30'))
+        self.publish_raw_response(application_id, application_data_protocol_version, chrg_ctrl_rsp_msg_hex)
+        chrg_ctrl_rsp_msg = MessageV30(MessageBodyV30(), OtaChrgCtrlStsResp())
+        self.message_V3_0_coder.decode_response(chrg_ctrl_rsp_msg_hex, chrg_ctrl_rsp_msg)
+        self.publish_json_response(application_id, application_data_protocol_version, chrg_ctrl_rsp_msg.get_data())
+        return chrg_ctrl_rsp_msg
+
+    def set_target_battery_soc(self, target_soc: int, vin_info: VinInfo, event_id: str = None):
+        chrg_setng_req = OtaChrgSetngReq()
+        chrg_setng_req.onBdChrgTrgtSOCReq = target_soc
+        chrg_setng_req.altngChrgCrntReq = 4
+        chrg_setng_req.tboxV2XSpSOCReq = 0
+        chrg_setng_req_msg = MessageV30(MessageBodyV30(), chrg_setng_req)
+        application_id = '516'
+        application_data_protocol_version = 768
+        self.message_V3_0_coder.initialize_message(self.uid, self.get_token(), vin_info.vin, application_id,
+                                                   application_data_protocol_version, 3, chrg_setng_req_msg)
+        if event_id is not None:
+            chrg_setng_req_msg.body.event_id = event_id
+        self.publish_json_request(application_id, application_data_protocol_version, chrg_setng_req_msg.get_data())
+        chrg_setng_req_msg_hex = self.message_V3_0_coder.encode_request(chrg_setng_req_msg)
+        self.publish_raw_request(application_id, application_data_protocol_version, chrg_setng_req_msg_hex)
+        chrg_setng_rsp_msg_hex = self.send_request(chrg_setng_req_msg_hex,
+                                                   urllib.parse.urljoin(self.saic_uri, '/TAP.Web/ota.mpv30'))
+        self.publish_raw_response(application_id, application_data_protocol_version, chrg_setng_rsp_msg_hex)
+        chrg_setng_rsp_msg = MessageV30(MessageBodyV30(), OtaChrgSetngResp())
+        self.message_V3_0_coder.decode_response(chrg_setng_rsp_msg_hex, chrg_setng_rsp_msg)
+        self.publish_json_response(application_id, application_data_protocol_version, chrg_setng_rsp_msg.get_data())
+        return chrg_setng_rsp_msg
+
+    def set_schedule_charging(self, start_time: datetime.time, end_time: datetime.time,
+                              mode: ScheduledChargingMode,
+                              vin_info: VinInfo,
+                              event_id: str = None):
+        start_hour = start_time.hour
+        start_minute = start_time.minute
+        end_hour = end_time.hour
+        end_minute = end_time.minute
+        mode_value = mode.value
+        chrg_rsvan_req = OtaChrgRsvanReq()
+        chrg_rsvan_req.rsvanStHour = start_hour
+        chrg_rsvan_req.rsvanStMintu = start_minute
+        chrg_rsvan_req.rsvanSpHour = end_hour
+        chrg_rsvan_req.rsvanSpMintu = end_minute
+        chrg_rsvan_req.tboxAdpPubChrgSttnReq = 1
+        chrg_rsvan_req.tboxReserCtrlReq = mode_value
+        chrg_rsvan_msg = MessageV30(MessageBodyV30(), chrg_rsvan_req)
+        application_id = '516'
+        application_data_protocol_version = 768
+        self.message_V3_0_coder.initialize_message(self.uid, self.get_token(), vin_info.vin, application_id,
+                                                   application_data_protocol_version, 1, chrg_rsvan_msg)
+        if event_id is not None:
+            chrg_rsvan_msg.body.event_id = event_id
+        self.publish_json_request(application_id, application_data_protocol_version, chrg_rsvan_msg.get_data())
+        chrg_rsvan_req_msg_hex = self.message_V3_0_coder.encode_request(chrg_rsvan_msg)
+        self.publish_raw_request(application_id, application_data_protocol_version, chrg_rsvan_req_msg_hex)
+        chrg_rsvan_rsp_msg_hex = self.send_request(chrg_rsvan_req_msg_hex,
+                                                   urllib.parse.urljoin(self.saic_uri, '/TAP.Web/ota.mpv30'))
+        self.publish_raw_response(application_id, application_data_protocol_version, chrg_rsvan_rsp_msg_hex)
+        chrg_rsvan_rsp_msg = MessageV30(MessageBodyV30(), OtaCrgRsvanResp())
+        self.message_V3_0_coder.decode_response(chrg_rsvan_rsp_msg_hex, chrg_rsvan_rsp_msg)
+        self.publish_json_response(application_id, application_data_protocol_version, chrg_rsvan_rsp_msg.get_data())
+        return chrg_rsvan_rsp_msg
+
+    ## Messages
     def get_message_list(self, event_id: str = None) -> MessageV11:
         return self.get_alarm_list(1, 5, event_id)
 
