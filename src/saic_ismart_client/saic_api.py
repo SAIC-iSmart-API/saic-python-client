@@ -123,10 +123,16 @@ class SaicApi:
                 self.token_expiration = logging_in_rsp.token_expiration
         return login_response_message
 
-    def set_alarm_switches(self, alarm_switches: list) -> None:
+    def set_geofence_alarm_switch(self) -> None:
+        return self.set_alarm_switches(
+            [create_alarm_switch(MpAlarmSettingType.REGION)],
+            pin='22222222222222222222222222222222'
+        )
+
+    def set_alarm_switches(self, alarm_switches: list, pin: str = None) -> None:
         alarm_switch_req = AlarmSwitchReq()
         alarm_switch_req.alarm_switch_list = alarm_switches
-        alarm_switch_req.pin = hash_md5('123456')
+        alarm_switch_req.pin = hash_md5('123456') if pin is None else pin
 
         header = Header()
         header.protocol_version = 17
@@ -571,11 +577,23 @@ class SaicApi:
         return self.handle_retry(self.get_charging_status, vin_info)
 
     def get_message_list(self, event_id: str = None) -> MessageV11:
+        return self.get_alarm_list(1, 5, event_id)
+
+    def get_alarm_list(self, start: int, end: int, event_id: str = None) -> MessageV11:
+        return self.__get_message_list_of_group(start, end, 'ALARM', event_id)
+
+    def get_command_list(self, start: int, end: int, event_id: str = None) -> MessageV11:
+        return self.__get_message_list_of_group(start, end, 'COMMAND', event_id)
+
+    def get_news_list(self, start: int, end: int, event_id: str = None) -> MessageV11:
+        return self.__get_message_list_of_group(start, end, 'NEWS', event_id)
+
+    def __get_message_list_of_group(self, start: int, end: int, message_group: str, event_id: str = None) -> MessageV11:
         message_list_request = MessageListReq()
         message_list_request.start_end_number = StartEndNumber()
-        message_list_request.start_end_number.start_number = 1
-        message_list_request.start_end_number.end_number = 5
-        message_list_request.message_group = 'ALARM'
+        message_list_request.start_end_number.start_number = start
+        message_list_request.start_end_number.end_number = end
+        message_list_request.message_group = message_group
 
         header = Header()
         header.protocol_version = 18
@@ -598,10 +616,26 @@ class SaicApi:
         self.publish_json_response(application_id, application_data_protocol_version, message_list_rsp_msg.get_data())
         return message_list_rsp_msg
 
-    def delete_message(self, message_id: int, event_id: str = None) -> None:
+    def delete_all_alarms(self, event_id: str = None):
+        self.__change_message_status(None, 'DELETE_ALARM', event_id)
+
+    def delete_all_commands(self, event_id: str = None):
+        self.__change_message_status(None, 'DELETE_COMMAND', event_id)
+
+    def delete_all_news(self, event_id: str = None):
+        self.__change_message_status(None, 'DELETE_NEWS', event_id)
+
+    def read_message(self, message_id: int, event_id: str = None):
+        self.__change_message_status(message_id, 'READ', event_id)
+
+    def delete_message(self, message_id: int, event_id: str = None):
+        self.__change_message_status(message_id, 'DELETE', event_id)
+
+    def __change_message_status(self, message_id: int | None, action_type: str, event_id: str = None):
         abort_send_msg_req = AbortSendMessageReq()
-        abort_send_msg_req.action_type = 'DELETE'
-        abort_send_msg_req.message_id = message_id
+        abort_send_msg_req.action_type = action_type
+        if message_id is not None:
+            abort_send_msg_req.message_id = message_id
 
         header = Header()
         header.protocol_version = 17
