@@ -19,7 +19,7 @@ from saic_ismart_client.ota_v2_1.data_model import OtaRvcReq, OtaRvcStatus25857,
     OtaRvmVehicleStatusResp25857, RvcReqParam
 from saic_ismart_client.ota_v3_0.Message import MessageBodyV30, MessageCoderV30, MessageV30
 from saic_ismart_client.ota_v3_0.data_model import OtaChrgCtrlReq, OtaChrgCtrlStsResp, OtaChrgHeatReq, OtaChrgHeatResp, \
-    OtaChrgMangDataResp, OtaChrgRsvanReq, OtaChrgSetngReq, OtaChrgSetngResp, OtaCrgRsvanResp
+    OtaChrgMangDataResp, OtaChrgRsvanReq, OtaChrgSetngReq, OtaChrgSetngResp, OtaChrgRsvanResp
 
 UID_INIT = '0000000000000000000000000000000000000000000000000#'
 AVG_SMS_DELIVERY_TIME = 15
@@ -27,9 +27,9 @@ logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
 
 
 class ScheduledChargingMode(Enum):
-    DISABLED = 2,
-    UNTIL_CONFIGURED_SOC = 3,
-    UNTIL_FULL = 1,
+    DISABLED = 2
+    UNTIL_CONFIGURED_SOC = 3
+    UNTIL_CONFIGURED_TIME = 1
 
 
 class TargetBatteryCode(Enum):
@@ -716,7 +716,7 @@ class SaicApi:
         chrg_rsvan_rsp_msg_hex = self.send_request(chrg_rsvan_req_msg_hex,
                                                    urllib.parse.urljoin(self.saic_uri, '/TAP.Web/ota.mpv30'))
         self.publish_raw_response(application_id, application_data_protocol_version, chrg_rsvan_rsp_msg_hex)
-        chrg_rsvan_rsp_msg = MessageV30(MessageBodyV30(), OtaCrgRsvanResp())
+        chrg_rsvan_rsp_msg = MessageV30(MessageBodyV30(), OtaChrgRsvanResp())
         self.message_V3_0_coder.decode_response(chrg_rsvan_rsp_msg_hex, chrg_rsvan_rsp_msg)
         self.publish_json_response(application_id, application_data_protocol_version, chrg_rsvan_rsp_msg.get_data())
         return chrg_rsvan_rsp_msg

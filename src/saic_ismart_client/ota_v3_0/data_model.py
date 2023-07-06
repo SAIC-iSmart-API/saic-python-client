@@ -320,9 +320,9 @@ class OtaChrgRsvanReq(ApplicationData):
         self.tboxAdpPubChrgSttnReq = data.get('tboxAdpPubChrgSttnReq')
 
 
-class OtaCrgRsvanResp(ApplicationData):
+class OtaChrgRsvanResp(ApplicationData):
     def __init__(self):
-        super().__init__('OTACrgRsvanResp')
+        super().__init__('OTAChrgRsvanResp')
         self.rvcReqSts = None
         self.bmsReserCtrlDspCmd = None
         self.bmsReserStHourDspCmd = None
