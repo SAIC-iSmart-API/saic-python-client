@@ -82,8 +82,8 @@ RvsChargingStatus ::= SEQUENCE
 OTAChrgCtrlReq ::= SEQUENCE
 {
     chrgCtrlReq INTEGER(0..255),
-    tboxV2XReq INTEGER(0..255)
-    tboxEleccLckCtrlReq INTEGER(0..255),
+    tboxV2XReq INTEGER(0..255).
+    tboxEleccLckCtrlReq INTEGER(0..255)
 }
 OTAChrgCtrlStsResp ::= SEQUENCE
 {
@@ -119,9 +119,9 @@ OTAChrgSetngReq ::= SEQUENCE
 {
     onBdChrgTrgtSOCReq INTEGER(0..255),
     altngChrgCrntReq INTEGER(0..255),
-    tboxV2XSpSOCReq INTEGER(0..255),
+    tboxV2XSpSOCReq INTEGER(0..255)
 }
-OTAChrgSetngResp :: = SEQUENCE
+OTAChrgSetngResp ::= SEQUENCE
 {
     rvcReqSts OCTET STRING(SIZE(1)),
     bmsOnBdChrgTrgtSOCDspCmd INTEGER(0..255),
