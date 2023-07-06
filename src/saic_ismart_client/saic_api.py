@@ -1,4 +1,5 @@
 import datetime
+import functools
 import hashlib
 import logging
 import time
@@ -29,6 +30,16 @@ class ScheduledChargingMode(Enum):
     DISABLED = 2,
     UNTIL_CONFIGURED_SOC = 3,
     UNTIL_FULL = 1,
+
+
+class TargetBatteryCode(Enum):
+    P_40 = 1
+    P_50 = 2
+    P_60 = 3
+    P_70 = 4
+    P_80 = 5
+    P_90 = 6
+    P_100 = 7
 
 
 class SaicMessage:
@@ -611,7 +622,7 @@ class SaicApi:
         chrg_ctrl_req = OtaChrgCtrlReq()
         chrg_ctrl_req.chrgCtrlReq = 0
         chrg_ctrl_req.tboxV2XReq = 0
-        chrg_ctrl_req.tboxEleccLckCtrlReq = bool_to_int(unlock)
+        chrg_ctrl_req.tboxEleccLckCtrlReq = 2 if unlock else 1
         chrg_ctrl_req_msg = MessageV30(MessageBodyV30(), chrg_ctrl_req)
         application_id = '516'
         application_data_protocol_version = 768
@@ -632,7 +643,7 @@ class SaicApi:
 
     def control_charging(self, stop_charging: bool, vin_info: VinInfo, event_id: str = None):
         chrg_ctrl_req = OtaChrgCtrlReq()
-        chrg_ctrl_req.chrgCtrlReq = bool_to_int(stop_charging)
+        chrg_ctrl_req.chrgCtrlReq = 2 if stop_charging else 1
         chrg_ctrl_req.tboxV2XReq = 0
         chrg_ctrl_req.tboxEleccLckCtrlReq = 0
         chrg_ctrl_req_msg = MessageV30(MessageBodyV30(), chrg_ctrl_req)
@@ -653,9 +664,9 @@ class SaicApi:
         self.publish_json_response(application_id, application_data_protocol_version, chrg_ctrl_rsp_msg.get_data())
         return chrg_ctrl_rsp_msg
 
-    def set_target_battery_soc(self, target_soc: int, vin_info: VinInfo, event_id: str = None):
+    def set_target_battery_soc(self, target_soc: TargetBatteryCode, vin_info: VinInfo, event_id: str = None):
         chrg_setng_req = OtaChrgSetngReq()
-        chrg_setng_req.onBdChrgTrgtSOCReq = target_soc
+        chrg_setng_req.onBdChrgTrgtSOCReq = target_soc.value
         chrg_setng_req.altngChrgCrntReq = 4
         chrg_setng_req.tboxV2XSpSOCReq = 0
         chrg_setng_req_msg = MessageV30(MessageBodyV30(), chrg_setng_req)
