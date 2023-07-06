@@ -82,7 +82,7 @@ RvsChargingStatus ::= SEQUENCE
 OTAChrgCtrlReq ::= SEQUENCE
 {
     chrgCtrlReq INTEGER(0..255),
-    tboxV2XReq INTEGER(0..255).
+    tboxV2XReq INTEGER(0..255),
     tboxEleccLckCtrlReq INTEGER(0..255)
 }
 OTAChrgCtrlStsResp ::= SEQUENCE

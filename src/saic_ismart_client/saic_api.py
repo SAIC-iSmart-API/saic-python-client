@@ -588,7 +588,7 @@ class SaicApi:
 
     def control_battery_heating(self, enable: bool, vin_info: VinInfo, event_id: str = None) -> MessageV30:
         chrg_heat_req = OtaChrgHeatReq()
-        chrg_heat_req.ptcHeatReq = bool_to_bit(enable)
+        chrg_heat_req.ptcHeatReq = bool_to_int(enable)
         chrg_heat_req_msg = MessageV30(MessageBodyV30(), chrg_heat_req)
         application_id = '516'
         application_data_protocol_version = 768
@@ -611,7 +611,7 @@ class SaicApi:
         chrg_ctrl_req = OtaChrgCtrlReq()
         chrg_ctrl_req.chrgCtrlReq = 0
         chrg_ctrl_req.tboxV2XReq = 0
-        chrg_ctrl_req.tboxEleccLckCtrlReq = bool_to_bit(unlock)
+        chrg_ctrl_req.tboxEleccLckCtrlReq = bool_to_int(unlock)
         chrg_ctrl_req_msg = MessageV30(MessageBodyV30(), chrg_ctrl_req)
         application_id = '516'
         application_data_protocol_version = 768
@@ -632,7 +632,7 @@ class SaicApi:
 
     def control_charging(self, stop_charging: bool, vin_info: VinInfo, event_id: str = None):
         chrg_ctrl_req = OtaChrgCtrlReq()
-        chrg_ctrl_req.chrgCtrlReq = bool_to_bit(stop_charging)
+        chrg_ctrl_req.chrgCtrlReq = bool_to_int(stop_charging)
         chrg_ctrl_req.tboxV2XReq = 0
         chrg_ctrl_req.tboxEleccLckCtrlReq = 0
         chrg_ctrl_req_msg = MessageV30(MessageBodyV30(), chrg_ctrl_req)
@@ -879,6 +879,10 @@ class SaicApi:
 
 def bool_to_bit(flag):
     return b'\x01' if flag else b'\x00'
+
+
+def bool_to_int(flag):
+    return 1 if flag else 0
 
 
 def hash_md5(password: str) -> str:
