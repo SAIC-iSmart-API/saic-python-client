@@ -1,5 +1,4 @@
 import datetime
-import functools
 import hashlib
 import logging
 import time
@@ -18,8 +17,8 @@ from saic_ismart_client.ota_v2_1.Message import MessageCoderV21
 from saic_ismart_client.ota_v2_1.data_model import OtaRvcReq, OtaRvcStatus25857, OtaRvmVehicleStatusReq, \
     OtaRvmVehicleStatusResp25857, RvcReqParam
 from saic_ismart_client.ota_v3_0.Message import MessageBodyV30, MessageCoderV30, MessageV30
-from saic_ismart_client.ota_v3_0.data_model import OtaChrgCtrlReq, OtaChrgCtrlStsResp, OtaChrgHeatReq, OtaChrgHeatResp, \
-    OtaChrgMangDataResp, OtaChrgRsvanReq, OtaChrgSetngReq, OtaChrgSetngResp, OtaChrgRsvanResp
+from saic_ismart_client.ota_v3_0.data_model import OtaChrgCtrlReq, OtaChrgCtrlStsResp, OtaChrgHeatReq, \
+    OtaChrgHeatResp, OtaChrgMangDataResp, OtaChrgRsvanReq, OtaChrgSetngReq, OtaChrgSetngResp, OtaChrgRsvanResp
 
 UID_INIT = '0000000000000000000000000000000000000000000000000#'
 AVG_SMS_DELIVERY_TIME = 15
@@ -573,7 +572,7 @@ class SaicApi:
                                    vehicle_control_cmd_rsp_msg.get_data())
         return vehicle_control_cmd_rsp_msg
 
-    ## CHARGING MANAGEMENT
+    # CHARGING MANAGEMENT
 
     def get_charging_status(self, vin_info: VinInfo, event_id: str = None) -> MessageV30:
         chrg_mgmt_data_req_msg = MessageV30(MessageBodyV30())
@@ -721,7 +720,7 @@ class SaicApi:
         self.publish_json_response(application_id, application_data_protocol_version, chrg_rsvan_rsp_msg.get_data())
         return chrg_rsvan_rsp_msg
 
-    ## Messages
+    # Messages
     def get_message_list(self, event_id: str = None) -> MessageV11:
         return self.get_alarm_list(1, 5, event_id)
 
