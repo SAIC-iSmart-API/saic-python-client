@@ -19,7 +19,7 @@ class AbrpApi:
         self.abrp_api_key = abrp_api_key
         self.abrp_user_token = abrp_user_token
 
-    def update_abrp(self, vehicle_status: OtaRvmVehicleStatusResp25857, charge_status: OtaChrgMangDataResp) -> None:
+    def update_abrp(self, vehicle_status: OtaRvmVehicleStatusResp25857, charge_status: OtaChrgMangDataResp) -> str:
         if (
                 self.abrp_api_key is not None
                 and self.abrp_user_token is not None
@@ -55,7 +55,7 @@ class AbrpApi:
                     'token': self.abrp_user_token,
                     'tlm': json.dumps(data)
                 })
-                print(f'ABRP: {response.content}')
+                return response.content.decode()
             except requests.exceptions.ConnectionError as ece:
                 raise AbrpApiException(f'Connection error: {ece}')
             except requests.exceptions.Timeout as et:
