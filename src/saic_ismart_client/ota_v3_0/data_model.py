@@ -248,51 +248,205 @@ class RvsChargingStatus(Asn1Type):
 class OtaChrgCtrlReq(ApplicationData):
     def __init__(self):
         super().__init__('OTAChrgCtrlReq')
-        self.chrg_ctrl_reg = -1  # INTEGER(0..255)
-        self.tbox_v2x_req = -1  # INTEGER(0..255)
-        self.tbox_elecc_lck_ctrl_req = -1  # INTEGER(0..255)
+        self.chrgCtrlReq = None
+        self.tboxV2XReq = None
+        self.tboxEleccLckCtrlReq = None
 
     def get_data(self) -> dict:
-        return {
-            'chrgCtrlReq': self.chrg_ctrl_reg,
-            'tboxV2XReq': self.tbox_v2x_req,
-            'tboxEleccLckCtrlReq': self.tbox_elecc_lck_ctrl_req
+        data = {
+            'chrgCtrlReq': self.chrgCtrlReq,
+            'tboxV2XReq': self.tboxV2XReq,
+            'tboxEleccLckCtrlReq': self.tboxEleccLckCtrlReq,
         }
+        return data
 
     def init_from_dict(self, data: dict):
-        self.chrg_ctrl_reg = data.get('chrgCtrlReq')
-        self.tbox_v2x_req = data.get('tboxV2XReq')
-        self.tbox_elecc_lck_ctrl_req = data.get('tboxEleccLckCtrlReq')
+        self.chrgCtrlReq = data.get('chrgCtrlReq')
+        self.tboxV2XReq = data.get('tboxV2XReq')
+        self.tboxEleccLckCtrlReq = data.get('tboxEleccLckCtrlReq')
 
 
 class OtaChrgCtrlStsResp(ApplicationData):
     def __init__(self):
         super().__init__('OTAChrgCtrlStsResp')
-        self.chrg_ctrl_dsp_cmd = -1  # INTEGER(0..255)
-        self.chrg_ctrl_resp = -1  # INTEGER(0..255)
-        self.bms_ds_chrg_ctrl_dsp_cmd = -1  # INTEGER(0..255) OPTIONAL
-        self.bms_ds_chrg_ctrl_resp = -1  # INTEGER(0..255) OPTIONAL
-        self.ccu_elecc_lck_ctrl_dsp_cmd = -1  # INTEGER(0..255) OPTIONAL
-        self.ccu_elecc_lck_ctrl_resp = -1  # INTEGER(0..255) OPTIONAL
-        self.rvc_req_sts = b''  # OCTET STRING(SIZE(1))
+        self.chrgCtrlDspCmd = None
+        self.chrgCtrlResp = None
+        self.bmsDsChrgCtrlDspCmd = None
+        self.bmsDsChrgCtrlResp = None
+        self.ccuEleccLckCtrlDspCmd = None
+        self.ccuEleccLckCtrlResp = None
+        self.rvcReqSts = None
 
     def get_data(self) -> dict:
         data = {
-            'chrgCtrlDspCmd': self.chrg_ctrl_dsp_cmd,
-            'chrgCtrlResp': self.chrg_ctrl_resp
+            'chrgCtrlDspCmd': self.chrgCtrlDspCmd,
+            'chrgCtrlResp': self.chrgCtrlResp,
         }
-        self.add_optional_field_to_data(data, 'bmsDsChrgCtrlDspCmd', self.bms_ds_chrg_ctrl_dsp_cmd)
-        self.add_optional_field_to_data(data, 'bmsDsChrgCtrlResp', self.bms_ds_chrg_ctrl_resp)
-        self.add_optional_field_to_data(data, 'ccuEleccLckCtrlDspCmd', self.ccu_elecc_lck_ctrl_dsp_cmd)
-        self.add_optional_field_to_data(data, 'ccuEleccLckCtrlResp', self.ccu_elecc_lck_ctrl_resp)
-        self.add_optional_field_to_data(data, 'rvcReqSts', self.rvc_req_sts)
+        self.add_optional_field_to_data(data, 'bmsDsChrgCtrlDspCmd', self.bmsDsChrgCtrlDspCmd)
+        self.add_optional_field_to_data(data, 'bmsDsChrgCtrlResp', self.bmsDsChrgCtrlResp)
+        self.add_optional_field_to_data(data, 'ccuEleccLckCtrlDspCmd', self.ccuEleccLckCtrlDspCmd)
+        self.add_optional_field_to_data(data, 'ccuEleccLckCtrlResp', self.ccuEleccLckCtrlResp)
+        self.add_optional_field_to_data(data, 'rvcReqSts', self.rvcReqSts)
+        return data
+
+
+class OtaChrgRsvanReq(ApplicationData):
+    def __init__(self):
+        super().__init__('OTAChrgRsvanReq')
+        self.rsvanStHour = None
+        self.rsvanStMintu = None
+        self.rsvanSpHour = None
+        self.rsvanSpMintu = None
+        self.tboxReserCtrlReq = None
+        self.tboxAdpPubChrgSttnReq = None
+
+    def get_data(self) -> dict:
+        data = {
+            'rsvanStHour': self.rsvanStHour,
+            'rsvanStMintu': self.rsvanStMintu,
+            'rsvanSpHour': self.rsvanSpHour,
+            'rsvanSpMintu': self.rsvanSpMintu,
+            'tboxReserCtrlReq': self.tboxReserCtrlReq,
+            'tboxAdpPubChrgSttnReq': self.tboxAdpPubChrgSttnReq
+        }
         return data
 
     def init_from_dict(self, data: dict):
-        self.chrg_ctrl_dsp_cmd = data.get('chrgCtrlDspCmd')
-        self.chrg_ctrl_resp = data.get('chrgCtrlResp')
-        self.bms_ds_chrg_ctrl_dsp_cmd = data.get('bmsDsChrgCtrlDspCmd')
-        self.bms_ds_chrg_ctrl_resp = data.get('bmsDsChrgCtrlResp')
-        self.ccu_elecc_lck_ctrl_dsp_cmd = data.get('ccuEleccLckCtrlDspCmd')
-        self.ccu_elecc_lck_ctrl_resp = data.get('ccuEleccLckCtrlResp')
-        self.rvc_req_sts = data.get('rvcReqSts')
+        self.rsvanStHour = data.get('rsvanStHour')
+        self.rsvanStMintu = data.get('rsvanStMintu')
+        self.rsvanSpHour = data.get('rsvanSpHour')
+        self.rsvanSpMintu = data.get('rsvanSpMintu')
+        self.tboxReserCtrlReq = data.get('tboxReserCtrlReq')
+        self.tboxAdpPubChrgSttnReq = data.get('tboxAdpPubChrgSttnReq')
+
+
+class OtaChrgRsvanResp(ApplicationData):
+    def __init__(self):
+        super().__init__('OTAChrgRsvanResp')
+        self.rvcReqSts = None
+        self.bmsReserCtrlDspCmd = None
+        self.bmsReserStHourDspCmd = None
+        self.bmsReserStMintueDspCmd = None
+        self.bmsReserSpHourDspCmd = None
+        self.bmsReserSpMintueDspCmd = None
+        self.bmsAdpPubChrgSttnDspCmd = None
+        self.bmsReserChrCtrlResp = None
+
+    def get_data(self) -> dict:
+        data = {
+            'rvcReqSts': self.rvcReqSts,
+            'bmsReserCtrlDspCmd': self.bmsReserCtrlDspCmd,
+            'bmsReserStHourDspCmd': self.bmsReserStHourDspCmd,
+            'bmsReserStMintueDspCmd': self.bmsReserStMintueDspCmd,
+            'bmsReserSpHourDspCmd': self.bmsReserSpHourDspCmd,
+            'bmsReserSpMintueDspCmd': self.bmsReserSpMintueDspCmd,
+            'bmsAdpPubChrgSttnDspCmd': self.bmsAdpPubChrgSttnDspCmd,
+        }
+        self.add_optional_field_to_data(data, 'bmsReserChrCtrlResp', self.bmsReserChrCtrlResp)
+        return data
+
+    def init_from_dict(self, data: dict):
+        self.rvcReqSts = data.get('rvcReqSts')
+        self.bmsReserCtrlDspCmd = data.get('bmsReserCtrlDspCmd')
+        self.bmsReserStHourDspCmd = data.get('bmsReserStHourDspCmd')
+        self.bmsReserStMintueDspCmd = data.get('bmsReserStMintueDspCmd')
+        self.bmsReserSpHourDspCmd = data.get('bmsReserSpHourDspCmd')
+        self.bmsReserSpMintueDspCmd = data.get('bmsReserSpMintueDspCmd')
+        self.bmsAdpPubChrgSttnDspCmd = data.get('bmsAdpPubChrgSttnDspCmd')
+        self.bmsReserChrCtrlResp = data.get('bmsReserChrCtrlResp')
+
+
+class OtaChrgSetngReq(ApplicationData):
+    def __init__(self):
+        super().__init__('OTAChrgSetngReq')
+        self.onBdChrgTrgtSOCReq = None
+        self.altngChrgCrntReq = None
+        self.tboxV2XSpSOCReq = None
+
+    def get_data(self) -> dict:
+        data = {
+            'onBdChrgTrgtSOCReq': self.onBdChrgTrgtSOCReq,
+            'altngChrgCrntReq': self.altngChrgCrntReq,
+            'tboxV2XSpSOCReq': self.tboxV2XSpSOCReq
+        }
+        return data
+
+    def init_from_dict(self, data: dict):
+        self.onBdChrgTrgtSOCReq = data.get('onBdChrgTrgtSOCReq')
+        self.altngChrgCrntReq = data.get('altngChrgCrntReq')
+        self.tboxV2XSpSOCReq = data.get('tboxV2XSpSOCReq')
+
+
+class OtaChrgSetngResp(ApplicationData):
+    def __init__(self):
+        super().__init__('OTAChrgSetngResp')
+        self.rvcReqSts = None
+        self.bmsOnBdChrgTrgtSOCDspCmd = None
+        self.bmsChrgTrgtSOCResp = None
+        self.bmsEstdElecRng = None
+        self.bmsAltngChrgCrntDspCmd = None
+        self.bmsPackCrnt = None
+        self.bmsAltngChrgCrntResp = None
+        self.imcuDschrgTrgtSOCDspCmd = None
+        self.imcuDschrgTrgtSOCResp = None
+
+    def get_data(self) -> dict:
+        data = {
+            'rvcReqSts': self.rvcReqSts,
+            'bmsOnBdChrgTrgtSOCDspCmd': self.bmsOnBdChrgTrgtSOCDspCmd,
+            'bmsChrgTrgtSOCResp': self.bmsChrgTrgtSOCResp,
+            'bmsEstdElecRng': self.bmsEstdElecRng,
+            'bmsAltngChrgCrntDspCmd': self.bmsAltngChrgCrntDspCmd,
+            'bmsPackCrnt': self.bmsPackCrnt,
+            'bmsAltngChrgCrntResp': self.bmsAltngChrgCrntResp
+        }
+        self.add_optional_field_to_data(data, 'imcuDschrgTrgtSOCDspCmd', self.imcuDschrgTrgtSOCDspCmd)
+        self.add_optional_field_to_data(data, 'imcuDschrgTrgtSOCResp', self.imcuDschrgTrgtSOCResp)
+        return data
+
+    def init_from_dict(self, data: dict):
+        self.rvcReqSts = data.get('rvcReqSts')
+        self.bmsOnBdChrgTrgtSOCDspCmd = data.get('bmsOnBdChrgTrgtSOCDspCmd')
+        self.bmsChrgTrgtSOCResp = data.get('bmsChrgTrgtSOCResp')
+        self.bmsEstdElecRng = data.get('bmsEstdElecRng')
+        self.bmsAltngChrgCrntDspCmd = data.get('bmsAltngChrgCrntDspCmd')
+        self.bmsPackCrnt = data.get('bmsPackCrnt')
+        self.bmsAltngChrgCrntResp = data.get('bmsAltngChrgCrntResp')
+        self.imcuDschrgTrgtSOCDspCmd = data.get('imcuDschrgTrgtSOCDspCmd')
+        self.imcuDschrgTrgtSOCResp = data.get('imcuDschrgTrgtSOCResp')
+
+
+class OtaChrgHeatReq(ApplicationData):
+    def __init__(self):
+        super().__init__('OTAChrgHeatReq')
+        self.ptcHeatReq = None
+
+    def get_data(self) -> dict:
+        data = {
+            'ptcHeatReq': self.ptcHeatReq
+        }
+        return data
+
+    def init_from_dict(self, data: dict):
+        self.ptcHeatReq = data.get('ptcHeatReq')
+
+
+class OtaChrgHeatResp(ApplicationData):
+    def __init__(self):
+        super().__init__('OTAChrgHeatResp')
+        self.ptcHeatReqDspCmd = None
+        self.ptcHeatResp = None
+        self.rvcReqSts = None
+
+    def get_data(self) -> dict:
+        data = {
+            'ptcHeatReqDspCmd': self.ptcHeatReqDspCmd,
+            'ptcHeatResp': self.ptcHeatResp,
+            'rvcReqSts': self.rvcReqSts
+        }
+        return data
+
+    def init_from_dict(self, data: dict):
+        self.ptcHeatReqDspCmd = data.get('ptcHeatReqDspCmd')
+        self.ptcHeatResp = data.get('ptcHeatResp')
+        self.rvcReqSts = data.get('rvcReqSts')
