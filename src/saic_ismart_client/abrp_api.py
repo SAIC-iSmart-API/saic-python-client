@@ -64,6 +64,8 @@ class AbrpApi:
                 raise AbrpApiException(f'HTTP error {ehttp}')
             except requests.exceptions.RequestException as e:
                 raise AbrpApiException(f'{e}')
+        else:
+            return 'ABRP request skipped because of missing configuration'
 
     @staticmethod
     def __extract_basic_vehicle_status(basic_vehicle_status: RvsBasicStatus25857) -> dict:
