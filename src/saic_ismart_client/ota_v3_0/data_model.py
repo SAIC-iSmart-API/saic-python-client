@@ -243,3 +243,56 @@ class RvsChargingStatus(Asn1Type):
         self.extended_data2 = data.get('extendedData2')
         self.extended_data3 = data.get('extendedData3')
         self.extended_data4 = data.get('extendedData4')
+
+
+class OtaChrgCtrlReq(ApplicationData):
+    def __init__(self):
+        super().__init__('OTAChrgCtrlReq')
+        self.chrg_ctrl_reg = -1  # INTEGER(0..255)
+        self.tbox_v2x_req = -1  # INTEGER(0..255)
+        self.tbox_elecc_lck_ctrl_req = -1  # INTEGER(0..255)
+
+    def get_data(self) -> dict:
+        return {
+            'chrgCtrlReq': self.chrg_ctrl_reg,
+            'tboxV2XReq': self.tbox_v2x_req,
+            'tboxEleccLckCtrlReq': self.tbox_elecc_lck_ctrl_req
+        }
+
+    def init_from_dict(self, data: dict):
+        self.chrg_ctrl_reg = data.get('chrgCtrlReq')
+        self.tbox_v2x_req = data.get('tboxV2XReq')
+        self.tbox_elecc_lck_ctrl_req = data.get('tboxEleccLckCtrlReq')
+
+
+class OtaChrgCtrlStsResp(ApplicationData):
+    def __init__(self):
+        super().__init__('OTAChrgCtrlStsResp')
+        self.chrg_ctrl_dsp_cmd = -1  # INTEGER(0..255)
+        self.chrg_ctrl_resp = -1  # INTEGER(0..255)
+        self.bms_ds_chrg_ctrl_dsp_cmd = -1  # INTEGER(0..255) OPTIONAL
+        self.bms_ds_chrg_ctrl_resp = -1  # INTEGER(0..255) OPTIONAL
+        self.ccu_elecc_lck_ctrl_dsp_cmd = -1  # INTEGER(0..255) OPTIONAL
+        self.ccu_elecc_lck_ctrl_resp = -1  # INTEGER(0..255) OPTIONAL
+        self.rvc_req_sts = b''  # OCTET STRING(SIZE(1))
+
+    def get_data(self) -> dict:
+        data = {
+            'chrgCtrlDspCmd': self.chrg_ctrl_dsp_cmd,
+            'chrgCtrlResp': self.chrg_ctrl_resp
+        }
+        self.add_optional_field_to_data(data, 'bmsDsChrgCtrlDspCmd', self.bms_ds_chrg_ctrl_dsp_cmd)
+        self.add_optional_field_to_data(data, 'bmsDsChrgCtrlResp', self.bms_ds_chrg_ctrl_resp)
+        self.add_optional_field_to_data(data, 'ccuEleccLckCtrlDspCmd', self.ccu_elecc_lck_ctrl_dsp_cmd)
+        self.add_optional_field_to_data(data, 'ccuEleccLckCtrlResp', self.ccu_elecc_lck_ctrl_resp)
+        self.add_optional_field_to_data(data, 'rvcReqSts', self.rvc_req_sts)
+        return data
+
+    def init_from_dict(self, data: dict):
+        self.chrg_ctrl_dsp_cmd = data.get('chrgCtrlDspCmd')
+        self.chrg_ctrl_resp = data.get('chrgCtrlResp')
+        self.bms_ds_chrg_ctrl_dsp_cmd = data.get('bmsDsChrgCtrlDspCmd')
+        self.bms_ds_chrg_ctrl_resp = data.get('bmsDsChrgCtrlResp')
+        self.ccu_elecc_lck_ctrl_dsp_cmd = data.get('ccuEleccLckCtrlDspCmd')
+        self.ccu_elecc_lck_ctrl_resp = data.get('ccuEleccLckCtrlResp')
+        self.rvc_req_sts = data.get('rvcReqSts')

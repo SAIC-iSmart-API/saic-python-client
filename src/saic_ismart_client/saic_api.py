@@ -16,7 +16,7 @@ from saic_ismart_client.ota_v2_1.Message import MessageCoderV21
 from saic_ismart_client.ota_v2_1.data_model import OtaRvmVehicleStatusReq, OtaRvmVehicleStatusResp25857, OtaRvcReq,\
     RvcReqParam, OtaRvcStatus25857
 from saic_ismart_client.ota_v3_0.Message import MessageCoderV30, MessageV30, MessageBodyV30
-from saic_ismart_client.ota_v3_0.data_model import OtaChrgMangDataResp
+from saic_ismart_client.ota_v3_0.data_model import OtaChrgMangDataResp, OtaChrgCtrlReq, OtaChrgCtrlStsResp
 
 UID_INIT = '0000000000000000000000000000000000000000000000000#'
 AVG_SMS_DELIVERY_TIME = 15
@@ -541,6 +541,33 @@ class SaicApi:
         if message_delete_rsp_msg.body.error_message is not None:
             raise SaicApiException(message_delete_rsp_msg.body.error_message.decode(),
                                    message_delete_rsp_msg.body.result)
+
+    def send_charging(self, vin_info: VinInfo, state: bool, event_id: str = None) -> MessageV30:
+        charge_ctrl_req = OtaChrgCtrlReq()
+        charge_ctrl_req.tbox_v2x_req = 0
+        charge_ctrl_req.tbox_elecc_lck_ctrl_req = 0
+        if state:
+            charge_ctrl_req.chrg_ctrl_reg = 1
+        else:
+            charge_ctrl_req.chrg_ctrl_reg = 2
+
+        chrg_ctrl_req_msg = MessageV30(MessageBodyV30(), charge_ctrl_req)
+        application_id = '516'
+        application_data_protocol_version = 768
+        self.message_V3_0_coder.initialize_message(self.uid, self.get_token(), vin_info.vin, application_id,
+                                                   application_data_protocol_version, 7, chrg_ctrl_req_msg)
+        if event_id is not None:
+            chrg_ctrl_req_msg.body.event_id = event_id
+        self.publish_json_request(application_id, application_data_protocol_version, chrg_ctrl_req_msg.get_data())
+        chrg_ctrl_req_hex = self.message_V3_0_coder.encode_request(chrg_ctrl_req_msg)
+        self.publish_raw_request(application_id, application_data_protocol_version, chrg_ctrl_req_hex)
+        chrg_ctrl_rsp_hex = self.send_request(chrg_ctrl_req_hex,
+                                              urllib.parse.urljoin(self.saic_uri, '/TAP.Web/ota.mpv30'))
+        self.publish_raw_response(application_id, application_data_protocol_version, chrg_ctrl_rsp_hex)
+        chrg_ctrl_rsp_msg = MessageV30(MessageBodyV30(), OtaChrgCtrlStsResp())
+        self.message_V3_0_coder.decode_response(chrg_ctrl_req_hex, chrg_ctrl_rsp_msg)
+        self.publish_json_response(application_id, application_data_protocol_version, chrg_ctrl_rsp_msg.get_data())
+        return chrg_ctrl_rsp_msg
 
     def publish_raw_value(self, key: str, raw: str):
         if self.on_publish_raw_value is not None:
