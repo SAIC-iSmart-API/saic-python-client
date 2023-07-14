@@ -1,4 +1,5 @@
 from saic_ismart_client.common_model import ApplicationData, Asn1Type
+from saic_ismart_client.saic_api import TargetBatteryCode
 
 
 class OtaChrgMangDataResp(ApplicationData):
@@ -156,6 +157,13 @@ class OtaChrgMangDataResp(ApplicationData):
 
     def get_power(self) -> float:
         return self.get_current() * self.get_voltage() / 1000.0
+
+    def get_charge_target_soc(self) -> TargetBatteryCode | None:
+        raw_target_soc = self.bmsOnBdChrgTrgtSOCDspCmd
+        try:
+            return TargetBatteryCode(raw_target_soc)
+        except ValueError:
+            return None
 
 
 class RvsChargingStatus(Asn1Type):
