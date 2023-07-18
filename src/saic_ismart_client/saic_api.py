@@ -8,7 +8,8 @@ from typing import cast
 
 import requests as requests
 
-from saic_ismart_client.common_model import AbstractMessage, AbstractMessageBody, Header, MessageBodyV2, MessageV2
+from saic_ismart_client.common_model import AbstractMessage, AbstractMessageBody, Header, MessageBodyV2, MessageV2, \
+    TargetBatteryCode
 from saic_ismart_client.ota_v1_1.Message import MessageCoderV11
 from saic_ismart_client.ota_v1_1.data_model import AbortSendMessageReq, AlarmSwitch, AlarmSwitchReq, Message, \
     MessageBodyV11, MessageListReq, MessageListResp, MessageV11, MpAlarmSettingType, MpUserLoggingInReq, \
@@ -29,55 +30,6 @@ class ScheduledChargingMode(Enum):
     DISABLED = 2
     UNTIL_CONFIGURED_SOC = 3
     UNTIL_CONFIGURED_TIME = 1
-
-
-class TargetBatteryCode(Enum):
-    P_40 = 1
-    P_50 = 2
-    P_60 = 3
-    P_70 = 4
-    P_80 = 5
-    P_90 = 6
-    P_100 = 7
-
-    def get_percentage(self) -> int:
-        match self:
-            case TargetBatteryCode.P_40:
-                return 40
-            case TargetBatteryCode.P_50:
-                return 50
-            case TargetBatteryCode.P_60:
-                return 60
-            case TargetBatteryCode.P_70:
-                return 70
-            case TargetBatteryCode.P_80:
-                return 80
-            case TargetBatteryCode.P_90:
-                return 90
-            case TargetBatteryCode.P_100:
-                return 100
-            case _:
-                raise ValueError(f'Unknown target battery code: {self}')
-
-    @staticmethod
-    def from_percentage(percentage: int):
-        match percentage:
-            case 40:
-                return TargetBatteryCode.P_40
-            case 50:
-                return TargetBatteryCode.P_50
-            case 60:
-                return TargetBatteryCode.P_60
-            case 70:
-                return TargetBatteryCode.P_70
-            case 80:
-                return TargetBatteryCode.P_80
-            case 90:
-                return TargetBatteryCode.P_90
-            case 100:
-                return TargetBatteryCode.P_100
-            case _:  # default
-                raise ValueError(f'Unknown target battery percentage: {percentage}')
 
 
 class SaicMessage:
@@ -679,7 +631,7 @@ class SaicApi:
         self.publish_json_response(application_id, application_data_protocol_version, chrg_ctrl_rsp_msg.get_data())
         return chrg_ctrl_rsp_msg
 
-    def control_charging(self, stop_charging: bool, vin_info: VinInfo, event_id: str = None):
+    def control_charging(self, stop_charging: bool, vin_info: VinInfo, event_id: str = None) -> MessageV30:
         chrg_ctrl_req = OtaChrgCtrlReq()
         chrg_ctrl_req.chrgCtrlReq = 2 if stop_charging else 1
         chrg_ctrl_req.tboxV2XReq = 0
@@ -701,6 +653,12 @@ class SaicApi:
         self.message_V3_0_coder.decode_response(chrg_ctrl_rsp_msg_hex, chrg_ctrl_rsp_msg)
         self.publish_json_response(application_id, application_data_protocol_version, chrg_ctrl_rsp_msg.get_data())
         return chrg_ctrl_rsp_msg
+
+    def start_charging(self, vin_info: VinInfo, event_id: str = None) -> MessageV30:
+        return self.control_charging(False, vin_info, event_id)
+
+    def start_charging_with_retry(self, vin_info: VinInfo) -> MessageV30:
+        return self.handle_retry(self.start_charging, vin_info)
 
     def set_target_battery_soc(self, target_soc: TargetBatteryCode, vin_info: VinInfo, event_id: str = None):
         chrg_setng_req = OtaChrgSetngReq()
