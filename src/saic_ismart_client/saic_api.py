@@ -8,7 +8,8 @@ from typing import cast
 
 import requests as requests
 
-from saic_ismart_client.common_model import AbstractMessage, AbstractMessageBody, Header, MessageBodyV2, MessageV2
+from saic_ismart_client.common_model import AbstractMessage, AbstractMessageBody, Header, MessageBodyV2, MessageV2, \
+    ScheduledChargingMode, TargetBatteryCode
 from saic_ismart_client.ota_v1_1.Message import MessageCoderV11
 from saic_ismart_client.ota_v1_1.data_model import AbortSendMessageReq, AlarmSwitch, AlarmSwitchReq, Message, \
     MessageBodyV11, MessageListReq, MessageListResp, MessageV11, MpAlarmSettingType, MpUserLoggingInReq, \
@@ -23,61 +24,6 @@ from saic_ismart_client.ota_v3_0.data_model import OtaChrgCtrlReq, OtaChrgCtrlSt
 UID_INIT = '0000000000000000000000000000000000000000000000000#'
 AVG_SMS_DELIVERY_TIME = 15
 logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
-
-
-class ScheduledChargingMode(Enum):
-    DISABLED = 2
-    UNTIL_CONFIGURED_SOC = 3
-    UNTIL_CONFIGURED_TIME = 1
-
-
-class TargetBatteryCode(Enum):
-    P_40 = 1
-    P_50 = 2
-    P_60 = 3
-    P_70 = 4
-    P_80 = 5
-    P_90 = 6
-    P_100 = 7
-
-    def get_percentage(self) -> int:
-        match self:
-            case TargetBatteryCode.P_40:
-                return 40
-            case TargetBatteryCode.P_50:
-                return 50
-            case TargetBatteryCode.P_60:
-                return 60
-            case TargetBatteryCode.P_70:
-                return 70
-            case TargetBatteryCode.P_80:
-                return 80
-            case TargetBatteryCode.P_90:
-                return 90
-            case TargetBatteryCode.P_100:
-                return 100
-            case _:
-                raise ValueError(f'Unknown target battery code: {self}')
-
-    @staticmethod
-    def from_percentage(percentage: int):
-        match percentage:
-            case 40:
-                return TargetBatteryCode.P_40
-            case 50:
-                return TargetBatteryCode.P_50
-            case 60:
-                return TargetBatteryCode.P_60
-            case 70:
-                return TargetBatteryCode.P_70
-            case 80:
-                return TargetBatteryCode.P_80
-            case 90:
-                return TargetBatteryCode.P_90
-            case 100:
-                return TargetBatteryCode.P_100
-            case _:  # default
-                raise ValueError(f'Unknown target battery percentage: {percentage}')
 
 
 class SaicMessage:

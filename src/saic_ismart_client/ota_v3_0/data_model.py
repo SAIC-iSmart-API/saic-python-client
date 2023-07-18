@@ -1,5 +1,4 @@
-from saic_ismart_client.common_model import ApplicationData, Asn1Type
-from saic_ismart_client.saic_api import TargetBatteryCode
+from saic_ismart_client.common_model import ApplicationData, Asn1Type, TargetBatteryCode
 
 
 class OtaChrgMangDataResp(ApplicationData):
