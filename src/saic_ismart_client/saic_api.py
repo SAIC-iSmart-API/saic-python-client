@@ -9,7 +9,7 @@ from typing import cast
 import requests as requests
 
 from saic_ismart_client.common_model import AbstractMessage, AbstractMessageBody, Header, MessageBodyV2, MessageV2, \
-    TargetBatteryCode
+    ScheduledChargingMode, TargetBatteryCode
 from saic_ismart_client.ota_v1_1.Message import MessageCoderV11
 from saic_ismart_client.ota_v1_1.data_model import AbortSendMessageReq, AlarmSwitch, AlarmSwitchReq, Message, \
     MessageBodyV11, MessageListReq, MessageListResp, MessageV11, MpAlarmSettingType, MpUserLoggingInReq, \
@@ -24,12 +24,6 @@ from saic_ismart_client.ota_v3_0.data_model import OtaChrgCtrlReq, OtaChrgCtrlSt
 UID_INIT = '0000000000000000000000000000000000000000000000000#'
 AVG_SMS_DELIVERY_TIME = 15
 logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
-
-
-class ScheduledChargingMode(Enum):
-    DISABLED = 2
-    UNTIL_CONFIGURED_SOC = 3
-    UNTIL_CONFIGURED_TIME = 1
 
 
 class SaicMessage:
