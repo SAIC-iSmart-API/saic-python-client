@@ -869,7 +869,11 @@ class SaicApi:
                 time.sleep(float(self.relogin_delay))
             self.login()
         elif message_body.result == 4:
-            # please try again later
+            # The remote control instruction failed, please try again later.
+            logging.debug(message)
+            time.sleep(float(AVG_SMS_DELIVERY_TIME))
+        elif message_body.result == 6:
+            # The service is not available,please try again later
             logging.debug(message)
             time.sleep(float(AVG_SMS_DELIVERY_TIME))
         elif message_body.result == -1:
