@@ -1,9 +1,9 @@
 import datetime
 import hashlib
 import logging
+import os
 import time
 import urllib.parse
-from enum import Enum
 from typing import cast
 
 import requests as requests
@@ -23,7 +23,9 @@ from saic_ismart_client.ota_v3_0.data_model import OtaChrgCtrlReq, OtaChrgCtrlSt
 
 UID_INIT = '0000000000000000000000000000000000000000000000000#'
 AVG_SMS_DELIVERY_TIME = 15
-logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s %(message)s')
+LOG = logging.getLogger(__name__)
+LOG.setLevel(level=os.getenv('LOG_LEVEL', 'INFO').upper())
 
 
 class SaicMessage:
@@ -477,7 +479,7 @@ class SaicApi:
                 if vehicle_control_cmd_rsp_msg.body.error_message is not None:
                     self.handle_error(vehicle_control_cmd_rsp_msg.body)
                 else:
-                    logging.debug('API request returned no application data and no error message.')
+                    LOG.debug('API request returned no application data and no error message.')
                     time.sleep(float(AVG_SMS_DELIVERY_TIME))
 
                 event_id = vehicle_control_cmd_rsp_msg.body.event_id
@@ -519,7 +521,7 @@ class SaicApi:
             if rsp_msg.body.error_message is not None:
                 self.handle_error(rsp_msg.body)
             else:
-                logging.debug('API request returned no application data and no error message.')
+                LOG.debug('API request returned no application data and no error message.')
                 time.sleep(float(AVG_SMS_DELIVERY_TIME))
 
             if vin_info:
@@ -800,7 +802,7 @@ class SaicApi:
         if self.on_publish_raw_value is not None:
             self.on_publish_raw_value(key, raw)
         else:
-            logging.debug(f'{key}: {raw}')
+            LOG.debug(f'{key}: {raw}')
 
     def publish_raw_request(self, application_id: str, application_data_protocol_version: int, raw: str):
         key = f'{application_id}_{application_data_protocol_version}/raw/request'
@@ -822,7 +824,7 @@ class SaicApi:
         if self.on_publish_json_value is not None:
             self.on_publish_json_value(key, data)
         else:
-            logging.debug(f'{key}: {data}')
+            LOG.debug(f'{key}: {data}')
 
     def send_request(self, hex_message: str, endpoint) -> str:
         headers = {
@@ -862,24 +864,24 @@ class SaicApi:
 
         if message_body.result == 2:
             # re-login
-            logging.debug(message)
+            LOG.debug(message)
             if self.relogin_delay > 0:
-                logging.warning(f'The SAIC user has been logged out. '
+                LOG.warning(f'The SAIC user has been logged out. '
                                 + f'Waiting {self.relogin_delay} seconds before attempting another login')
                 time.sleep(float(self.relogin_delay))
             self.login()
         elif message_body.result == 4:
             # The remote control instruction failed, please try again later.
-            logging.debug(message)
+            LOG.debug(message)
             time.sleep(float(AVG_SMS_DELIVERY_TIME))
         elif message_body.result == 6:
             # The service is not available,please try again later
-            logging.debug(message)
+            LOG.debug(message)
             time.sleep(float(AVG_SMS_DELIVERY_TIME))
         elif message_body.result == -1:
-            logging.warning(message)
+            LOG.warning(message)
         else:
-            logging.error(message)
+            LOG.error(message)
 
 
 def bool_to_bit(flag):
