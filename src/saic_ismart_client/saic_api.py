@@ -567,6 +567,7 @@ class SaicApi:
         application_data_protocol_version = 768
         self.message_V3_0_coder.initialize_message(self.uid, self.get_token(), vin_info.vin, application_id,
                                                    application_data_protocol_version, 5, chrg_mgmt_data_req_msg)
+        chrg_mgmt_data_req_msg.body.ack_required = False
         if event_id is not None:
             chrg_mgmt_data_req_msg.body.event_id = event_id
         self.publish_json_request(application_id, application_data_protocol_version, chrg_mgmt_data_req_msg.get_data())
@@ -867,7 +868,7 @@ class SaicApi:
             LOG.debug(message)
             if self.relogin_delay > 0:
                 LOG.warning(f'The SAIC user has been logged out. '
-                                + f'Waiting {self.relogin_delay} seconds before attempting another login')
+                            + f'Waiting {self.relogin_delay} seconds before attempting another login')
                 time.sleep(float(self.relogin_delay))
             self.login()
         elif message_body.result == 4:
