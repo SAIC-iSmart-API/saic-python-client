@@ -476,13 +476,15 @@ class SaicApi:
         vehicle_control_cmd_rsp_msg = self.send_vehicle_control_command(vin_info, rvc_req_type, rvc_params)
 
         if has_app_data:
+            iteration = 1
             while vehicle_control_cmd_rsp_msg.application_data is None:
                 if vehicle_control_cmd_rsp_msg.body.error_message is not None:
-                    self.handle_error(vehicle_control_cmd_rsp_msg.body)
+                    self.handle_error(vehicle_control_cmd_rsp_msg.body, iteration)
                 else:
                     LOG.debug('API request returned no application data and no error message.')
                     time.sleep(float(AVG_SMS_DELIVERY_TIME))
 
+                iteration += 1
                 event_id = vehicle_control_cmd_rsp_msg.body.event_id
                 vehicle_control_cmd_rsp_msg = self.send_vehicle_control_command(vin_info, rvc_req_type, rvc_params,
                                                                                 event_id)
@@ -492,7 +494,7 @@ class SaicApi:
                     vehicle_control_cmd_rsp_msg.body.error_message is not None
                     and retry <= 3
             ):
-                self.handle_error(vehicle_control_cmd_rsp_msg.body)
+                self.handle_error(vehicle_control_cmd_rsp_msg.body, retry)
                 event_id = vehicle_control_cmd_rsp_msg.body.event_id
                 vehicle_control_cmd_rsp_msg = self.send_vehicle_control_command(vin_info, rvc_req_type, rvc_params,
                                                                                 event_id)
@@ -518,12 +520,15 @@ class SaicApi:
         else:
             rsp = func()
         rsp_msg = cast(AbstractMessage, rsp)
+        iteration = 1
         while rsp_msg.application_data is None:
             if rsp_msg.body.error_message is not None:
-                self.handle_error(rsp_msg.body)
+                self.handle_error(rsp_msg.body, iteration)
             else:
                 LOG.debug('API request returned no application data and no error message.')
                 time.sleep(float(AVG_SMS_DELIVERY_TIME))
+
+            iteration += 1
 
             if vin_info:
                 rsp_msg = func(vin_info, rsp_msg.body.event_id)
@@ -858,7 +863,11 @@ class SaicApi:
                 self.login()
         return self.token
 
-    def handle_error(self, message_body: AbstractMessageBody):
+    def handle_error(self, message_body: AbstractMessageBody, iteration: int):
+        if iteration > 0:
+            waiting_time = AVG_SMS_DELIVERY_TIME * iteration
+        else:
+            waiting_time = AVG_SMS_DELIVERY_TIME
         message = f'application ID: {message_body.application_id},' \
                   + f' protocol version: {message_body.application_data_protocol_version},' \
                   + f' message: {message_body.error_message.decode()}' \
@@ -875,11 +884,11 @@ class SaicApi:
         elif message_body.result == 4:
             # The remote control instruction failed, please try again later.
             LOG.debug(message)
-            time.sleep(float(AVG_SMS_DELIVERY_TIME))
+            time.sleep(float(waiting_time))
         elif message_body.result == 6:
             # The service is not available,please try again later
             LOG.debug(message)
-            time.sleep(float(AVG_SMS_DELIVERY_TIME))
+            time.sleep(float(waiting_time))
         elif message_body.result == -1:
             LOG.warning(message)
         else:
