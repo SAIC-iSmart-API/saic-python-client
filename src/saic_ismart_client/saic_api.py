@@ -175,6 +175,7 @@ class SaicApi:
         application_data_protocol_version = 25857
         self.message_V2_1_coder.initialize_message(self.uid, self.get_token(), vin_info.vin, application_id,
                                                    application_data_protocol_version, 1, vehicle_status_req_msg)
+        vehicle_status_req_msg.body.ack_required = False
         if event_id is not None:
             vehicle_status_req_msg.body.event_id = event_id
         self.publish_json_request(application_id, application_data_protocol_version, vehicle_status_req_msg.get_data())
