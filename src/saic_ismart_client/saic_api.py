@@ -473,42 +473,18 @@ class SaicApi:
 
     def send_vehicle_ctrl_cmd_with_retry(self, vin_info: VinInfo, rvc_req_type: bytes, rvc_params: list,
                                          has_app_data: bool, max_retries=3) -> MessageV2:
-        vehicle_control_cmd_rsp_msg = self.send_vehicle_control_command(vin_info, rvc_req_type, rvc_params)
 
-        if has_app_data:
-            iteration = 1
-            while vehicle_control_cmd_rsp_msg.application_data is None:
-                error_message = vehicle_control_cmd_rsp_msg.body.error_message
-                if iteration > max_retries:
-                    additional_info = '.'
-                    if error_message is not None:
-                        additional_info = f', error message: {error_message.decode()}'
-                    raise SaicApiException(f'API request failed after {iteration} retries{additional_info}')
-                elif error_message is not None:
-                    self.handle_error(vehicle_control_cmd_rsp_msg.body, iteration)
-                else:
-                    LOG.debug('API request returned no application data and no error message.')
-                    time.sleep(float(AVG_SMS_DELIVERY_TIME))
-
-                iteration += 1
-                event_id = vehicle_control_cmd_rsp_msg.body.event_id
-                vehicle_control_cmd_rsp_msg = self.send_vehicle_control_command(vin_info, rvc_req_type, rvc_params,
-                                                                                event_id)
-        else:
-            retry = 1
-            while (
-                    vehicle_control_cmd_rsp_msg.body.error_message is not None
-                    and retry <= max_retries
-            ):
-                self.handle_error(vehicle_control_cmd_rsp_msg.body, retry)
-                event_id = vehicle_control_cmd_rsp_msg.body.event_id
-                vehicle_control_cmd_rsp_msg = self.send_vehicle_control_command(vin_info, rvc_req_type, rvc_params,
-                                                                                event_id)
-                retry += 1
-            if vehicle_control_cmd_rsp_msg.body.error_message is not None:
-                raise SaicApiException(vehicle_control_cmd_rsp_msg.body.error_message.decode(),
-                                       vehicle_control_cmd_rsp_msg.body.result)
-        return vehicle_control_cmd_rsp_msg
+        return self.handle_retry(
+            lambda _vin_info, _event_id: self.send_vehicle_control_command(
+                _vin_info,
+                rvc_req_type,
+                rvc_params,
+                _event_id
+            ),
+            vin_info=vin_info,
+            has_app_data=has_app_data,
+            max_retries=max_retries
+        )
 
     def get_message_list_with_retry(self) -> list:
         message_list_rsp_msg = self.handle_retry(self.get_message_list)
@@ -520,7 +496,38 @@ class SaicApi:
                 result.append(convert(message))
         return result
 
-    def handle_retry(self, func, vin_info: VinInfo = None, max_retries=3):
+    def handle_retry(self, func, vin_info: VinInfo = None, has_app_data: bool = True, max_retries: int = 3):
+        if has_app_data:
+            return self.__handle_retry_with_app_data(func, vin_info=vin_info, max_retries=max_retries)
+        else:
+            return self.__handle_retry_without_app_data(func, vin_info=vin_info, max_retries=max_retries)
+
+    def __handle_retry_without_app_data(self, func, vin_info: VinInfo, max_retries: int):
+        if vin_info:
+            rsp = func(vin_info)
+        else:
+            rsp = func()
+        rsp_msg = cast(AbstractMessage, rsp)
+
+        retry = 1
+        while (
+                rsp_msg.body.error_message is not None
+                and retry <= max_retries
+        ):
+            self.handle_error(rsp_msg.body, retry)
+
+            if vin_info:
+                rsp_msg = func(vin_info, rsp_msg.body.event_id)
+            else:
+                rsp_msg = func(rsp_msg.body.event_id)
+
+            retry += 1
+        if rsp_msg.body.error_message is not None:
+            raise SaicApiException(rsp_msg.body.error_message.decode(),
+                                   rsp_msg.body.result)
+        return rsp_msg
+
+    def __handle_retry_with_app_data(self, func, vin_info: VinInfo, max_retries: int):
         if vin_info:
             rsp = func(vin_info)
         else:
