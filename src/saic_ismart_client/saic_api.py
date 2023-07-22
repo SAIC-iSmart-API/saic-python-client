@@ -893,6 +893,7 @@ class SaicApi:
             LOG.warning(message)
         else:
             LOG.error(message)
+            raise SaicApiException(message_body.error_message.decode(), message_body.result)
 
 
 def bool_to_bit(flag):
