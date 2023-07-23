@@ -273,54 +273,14 @@ class SaicApi:
         rcv_params.append(param3)
         return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x05', rcv_params, True)
 
-    def start_ac(self, vin_info: VinInfo) -> MessageV2:
-        rcv_params = []
-        param1 = RvcReqParam()
-        param1.param_id = 19
-        param1.param_value = b'\x02'
-        rcv_params.append(param1)
-
-        param2 = RvcReqParam()
-        param2.param_id = 20
-        param2.param_value = b'\x08'
-        rcv_params.append(param2)
-
-        param3 = RvcReqParam()
-        param3.param_id = 255
-        param3.param_value = b'\x00'
-        rcv_params.append(param3)
-
-        return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x06', rcv_params, True)
+    def start_ac(self, vin_info: VinInfo, temperature_idx=8) -> MessageV2:
+        return self.control_climate(vin_info, fan_speed=2, ac_on=None, temperature_idx=temperature_idx)
 
     def stop_ac(self, vin_info: VinInfo) -> MessageV2:
         return self.control_climate(vin_info, fan_speed=0, ac_on=False, temperature_idx=0)
 
     def start_ac_blowing(self, vin_info: VinInfo) -> MessageV2:
         return self.control_climate(vin_info, fan_speed=1, ac_on=False, temperature_idx=0)
-
-    def stop_ac_blowing(self, vin_info: VinInfo) -> MessageV2:
-        rcv_params = []
-        param1 = RvcReqParam()
-        param1.param_id = 19
-        param1.param_value = b'\x00'
-        rcv_params.append(param1)
-
-        param2 = RvcReqParam()
-        param2.param_id = 20
-        param2.param_value = b'\x00'
-        rcv_params.append(param2)
-
-        param3 = RvcReqParam()
-        param3.param_id = 22
-        param3.param_value = b'\x00'
-        rcv_params.append(param3)
-
-        param4 = RvcReqParam()
-        param4.param_id = 255
-        param4.param_value = b'\x00'
-        rcv_params.append(param4)
-
-        return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x06', rcv_params, True)
 
     def start_front_defrost(self, vin_info: VinInfo) -> MessageV2:
         return self.control_climate(vin_info, fan_speed=5, ac_on=True, temperature_idx=8)
@@ -353,7 +313,7 @@ class SaicApi:
             self,
             vin_info: VinInfo,
             fan_speed: int = 5,
-            ac_on: bool = True,
+            ac_on: bool | None = True,
             temperature_idx: int = 8
     ) -> MessageV2:
 
@@ -373,16 +333,17 @@ class SaicApi:
         param1.param_value = fan_speed.to_bytes(1, 'big')
         rcv_params.append(param1)
 
-        if fan_speed > 0:
+        if fan_speed > 0 or temperature_idx == 0:
             param2 = RvcReqParam()
             param2.param_id = 20
             param2.param_value = temperature_idx.to_bytes(1, 'big')
             rcv_params.append(param2)
 
-        param3 = RvcReqParam()
-        param3.param_id = 22
-        param3.param_value = bool_to_bit(ac_on)
-        rcv_params.append(param3)
+        if ac_on is not None:
+            param3 = RvcReqParam()
+            param3.param_id = 22
+            param3.param_value = bool_to_bit(ac_on)
+            rcv_params.append(param3)
 
         param4 = RvcReqParam()
         param4.param_id = 255
@@ -552,7 +513,7 @@ class SaicApi:
         return rsp_msg
 
     def __send_vehicle_control_command(self, rvc_req_type: bytes, rvc_params: list,
-                                     vin_info: VinInfo, event_id: str = None) -> MessageV2:
+                                       vin_info: VinInfo, event_id: str = None) -> MessageV2:
         vehicle_control_req = OtaRvcReq()
         vehicle_control_req.rvc_req_type = rvc_req_type
         for p in rvc_params:
