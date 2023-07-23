@@ -1,4 +1,5 @@
 import datetime
+import functools
 import hashlib
 import logging
 import os
@@ -475,12 +476,7 @@ class SaicApi:
                                          has_app_data: bool, max_retries=3) -> MessageV2:
 
         return self.handle_retry(
-            lambda _vin_info, _event_id: self.send_vehicle_control_command(
-                _vin_info,
-                rvc_req_type,
-                rvc_params,
-                _event_id
-            ),
+            functools.partial(self.__send_vehicle_control_command, rvc_req_type, rvc_params),
             vin_info=vin_info,
             has_app_data=has_app_data,
             max_retries=max_retries
@@ -555,8 +551,8 @@ class SaicApi:
                 rsp_msg = func(rsp_msg.body.event_id)
         return rsp_msg
 
-    def send_vehicle_control_command(self, vin_info: VinInfo, rvc_req_type: bytes, rvc_params: list,
-                                     event_id: str = None) -> MessageV2:
+    def __send_vehicle_control_command(self, rvc_req_type: bytes, rvc_params: list,
+                                     vin_info: VinInfo, event_id: str = None) -> MessageV2:
         vehicle_control_req = OtaRvcReq()
         vehicle_control_req.rvc_req_type = rvc_req_type
         for p in rvc_params:
