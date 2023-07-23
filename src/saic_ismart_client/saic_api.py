@@ -1,4 +1,5 @@
 import datetime
+import functools
 import hashlib
 import logging
 import os
@@ -272,54 +273,14 @@ class SaicApi:
         rcv_params.append(param3)
         return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x05', rcv_params, True)
 
-    def start_ac(self, vin_info: VinInfo) -> MessageV2:
-        rcv_params = []
-        param1 = RvcReqParam()
-        param1.param_id = 19
-        param1.param_value = b'\x02'
-        rcv_params.append(param1)
-
-        param2 = RvcReqParam()
-        param2.param_id = 20
-        param2.param_value = b'\x08'
-        rcv_params.append(param2)
-
-        param3 = RvcReqParam()
-        param3.param_id = 255
-        param3.param_value = b'\x00'
-        rcv_params.append(param3)
-
-        return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x06', rcv_params, True)
+    def start_ac(self, vin_info: VinInfo, temperature_idx=8) -> MessageV2:
+        return self.control_climate(vin_info, fan_speed=2, ac_on=None, temperature_idx=temperature_idx)
 
     def stop_ac(self, vin_info: VinInfo) -> MessageV2:
         return self.control_climate(vin_info, fan_speed=0, ac_on=False, temperature_idx=0)
 
     def start_ac_blowing(self, vin_info: VinInfo) -> MessageV2:
         return self.control_climate(vin_info, fan_speed=1, ac_on=False, temperature_idx=0)
-
-    def stop_ac_blowing(self, vin_info: VinInfo) -> MessageV2:
-        rcv_params = []
-        param1 = RvcReqParam()
-        param1.param_id = 19
-        param1.param_value = b'\x00'
-        rcv_params.append(param1)
-
-        param2 = RvcReqParam()
-        param2.param_id = 20
-        param2.param_value = b'\x00'
-        rcv_params.append(param2)
-
-        param3 = RvcReqParam()
-        param3.param_id = 22
-        param3.param_value = b'\x00'
-        rcv_params.append(param3)
-
-        param4 = RvcReqParam()
-        param4.param_id = 255
-        param4.param_value = b'\x00'
-        rcv_params.append(param4)
-
-        return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x06', rcv_params, True)
 
     def start_front_defrost(self, vin_info: VinInfo) -> MessageV2:
         return self.control_climate(vin_info, fan_speed=5, ac_on=True, temperature_idx=8)
@@ -352,7 +313,7 @@ class SaicApi:
             self,
             vin_info: VinInfo,
             fan_speed: int = 5,
-            ac_on: bool = True,
+            ac_on: bool | None = True,
             temperature_idx: int = 8
     ) -> MessageV2:
 
@@ -372,16 +333,17 @@ class SaicApi:
         param1.param_value = fan_speed.to_bytes(1, 'big')
         rcv_params.append(param1)
 
-        if fan_speed > 0:
+        if fan_speed > 0 or temperature_idx == 0:
             param2 = RvcReqParam()
             param2.param_id = 20
             param2.param_value = temperature_idx.to_bytes(1, 'big')
             rcv_params.append(param2)
 
-        param3 = RvcReqParam()
-        param3.param_id = 22
-        param3.param_value = bool_to_bit(ac_on)
-        rcv_params.append(param3)
+        if ac_on is not None:
+            param3 = RvcReqParam()
+            param3.param_id = 22
+            param3.param_value = bool_to_bit(ac_on)
+            rcv_params.append(param3)
 
         param4 = RvcReqParam()
         param4.param_id = 255
@@ -472,37 +434,14 @@ class SaicApi:
         return self.send_vehicle_ctrl_cmd_with_retry(vin_info, b'\x00', rcv_params, True)
 
     def send_vehicle_ctrl_cmd_with_retry(self, vin_info: VinInfo, rvc_req_type: bytes, rvc_params: list,
-                                         has_app_data: bool) -> MessageV2:
-        vehicle_control_cmd_rsp_msg = self.send_vehicle_control_command(vin_info, rvc_req_type, rvc_params)
+                                         has_app_data: bool, max_retries=3) -> MessageV2:
 
-        if has_app_data:
-            iteration = 1
-            while vehicle_control_cmd_rsp_msg.application_data is None:
-                if vehicle_control_cmd_rsp_msg.body.error_message is not None:
-                    self.handle_error(vehicle_control_cmd_rsp_msg.body, iteration)
-                else:
-                    LOG.debug('API request returned no application data and no error message.')
-                    time.sleep(float(AVG_SMS_DELIVERY_TIME))
-
-                iteration += 1
-                event_id = vehicle_control_cmd_rsp_msg.body.event_id
-                vehicle_control_cmd_rsp_msg = self.send_vehicle_control_command(vin_info, rvc_req_type, rvc_params,
-                                                                                event_id)
-        else:
-            retry = 1
-            while (
-                    vehicle_control_cmd_rsp_msg.body.error_message is not None
-                    and retry <= 3
-            ):
-                self.handle_error(vehicle_control_cmd_rsp_msg.body, retry)
-                event_id = vehicle_control_cmd_rsp_msg.body.event_id
-                vehicle_control_cmd_rsp_msg = self.send_vehicle_control_command(vin_info, rvc_req_type, rvc_params,
-                                                                                event_id)
-                retry += 1
-            if vehicle_control_cmd_rsp_msg.body.error_message is not None:
-                raise SaicApiException(vehicle_control_cmd_rsp_msg.body.error_message.decode(),
-                                       vehicle_control_cmd_rsp_msg.body.result)
-        return vehicle_control_cmd_rsp_msg
+        return self.handle_retry(
+            functools.partial(self.__send_vehicle_control_command, rvc_req_type, rvc_params),
+            vin_info=vin_info,
+            has_app_data=has_app_data,
+            max_retries=max_retries
+        )
 
     def get_message_list_with_retry(self) -> list:
         message_list_rsp_msg = self.handle_retry(self.get_message_list)
@@ -514,7 +453,38 @@ class SaicApi:
                 result.append(convert(message))
         return result
 
-    def handle_retry(self, func, vin_info: VinInfo = None):
+    def handle_retry(self, func, vin_info: VinInfo = None, has_app_data: bool = True, max_retries: int = 3):
+        if has_app_data:
+            return self.__handle_retry_with_app_data(func, vin_info=vin_info, max_retries=max_retries)
+        else:
+            return self.__handle_retry_without_app_data(func, vin_info=vin_info, max_retries=max_retries)
+
+    def __handle_retry_without_app_data(self, func, vin_info: VinInfo, max_retries: int):
+        if vin_info:
+            rsp = func(vin_info)
+        else:
+            rsp = func()
+        rsp_msg = cast(AbstractMessage, rsp)
+
+        retry = 1
+        while (
+                rsp_msg.body.error_message is not None
+                and retry <= max_retries
+        ):
+            self.handle_error(rsp_msg.body, retry)
+
+            if vin_info:
+                rsp_msg = func(vin_info, rsp_msg.body.event_id)
+            else:
+                rsp_msg = func(rsp_msg.body.event_id)
+
+            retry += 1
+        if rsp_msg.body.error_message is not None:
+            raise SaicApiException(rsp_msg.body.error_message.decode(),
+                                   rsp_msg.body.result)
+        return rsp_msg
+
+    def __handle_retry_with_app_data(self, func, vin_info: VinInfo, max_retries: int):
         if vin_info:
             rsp = func(vin_info)
         else:
@@ -522,7 +492,13 @@ class SaicApi:
         rsp_msg = cast(AbstractMessage, rsp)
         iteration = 1
         while rsp_msg.application_data is None:
-            if rsp_msg.body.error_message is not None:
+            error_message = rsp_msg.body.error_message
+            if iteration > max_retries:
+                additional_info = '.'
+                if error_message is not None:
+                    additional_info = f', error message: {error_message.decode()}'
+                raise SaicApiException(f'API request failed after {iteration} retries{additional_info}')
+            elif error_message is not None:
                 self.handle_error(rsp_msg.body, iteration)
             else:
                 LOG.debug('API request returned no application data and no error message.')
@@ -536,8 +512,8 @@ class SaicApi:
                 rsp_msg = func(rsp_msg.body.event_id)
         return rsp_msg
 
-    def send_vehicle_control_command(self, vin_info: VinInfo, rvc_req_type: bytes, rvc_params: list,
-                                     event_id: str = None) -> MessageV2:
+    def __send_vehicle_control_command(self, rvc_req_type: bytes, rvc_params: list,
+                                       vin_info: VinInfo, event_id: str = None) -> MessageV2:
         vehicle_control_req = OtaRvcReq()
         vehicle_control_req.rvc_req_type = rvc_req_type
         for p in rvc_params:
@@ -893,6 +869,7 @@ class SaicApi:
             LOG.warning(message)
         else:
             LOG.error(message)
+            raise SaicApiException(message_body.error_message.decode(), message_body.result)
 
 
 def bool_to_bit(flag):
