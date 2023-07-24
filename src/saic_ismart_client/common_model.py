@@ -49,6 +49,42 @@ class ScheduledChargingMode(Enum):
     UNTIL_CONFIGURED_TIME = 1
 
 
+class ChargeCurrentLimitCode(Enum):
+    C_IGNORE = 0
+    C_6A = 1
+    C_8A = 2
+    C_16A = 3
+    C_MAX = 4
+
+    @staticmethod
+    def to_code(limit: str):
+        match limit.upper():
+            case "6A":
+                return ChargeCurrentLimitCode.C_6A
+            case "8A":
+                return ChargeCurrentLimitCode.C_8A
+            case "16A":
+                return ChargeCurrentLimitCode.C_16A
+            case "MAX":
+                return ChargeCurrentLimitCode.C_MAX
+            case _:
+                raise ValueError(f'Unknown charge current limit: {limit}')
+
+    def get_limit(self) -> str:
+        match self:
+            case ChargeCurrentLimitCode.C_6A:
+                return "6A"
+            case ChargeCurrentLimitCode.C_8A:
+                return "8A"
+            case ChargeCurrentLimitCode.C_16A:
+                return "16A"
+            case ChargeCurrentLimitCode.C_MAX:
+                return "Max"
+            case _:
+                raise ValueError(f'Unknown charge current limit code: {limit}')
+
+
+
 class TargetBatteryCode(Enum):
     P_40 = 1
     P_50 = 2

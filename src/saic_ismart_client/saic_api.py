@@ -10,7 +10,7 @@ from typing import cast
 import requests as requests
 
 from saic_ismart_client.common_model import AbstractMessage, AbstractMessageBody, Header, MessageBodyV2, MessageV2, \
-    ScheduledChargingMode, TargetBatteryCode
+    ScheduledChargingMode, TargetBatteryCode, ChargeCurrentLimitCode
 from saic_ismart_client.ota_v1_1.Message import MessageCoderV11
 from saic_ismart_client.ota_v1_1.data_model import AbortSendMessageReq, AlarmSwitch, AlarmSwitchReq, Message, \
     MessageBodyV11, MessageListReq, MessageListResp, MessageV11, MpAlarmSettingType, MpUserLoggingInReq, \
@@ -639,10 +639,10 @@ class SaicApi:
     def start_charging_with_retry(self, vin_info: VinInfo) -> MessageV30:
         return self.handle_retry(self.start_charging, vin_info)
 
-    def set_target_battery_soc(self, target_soc: TargetBatteryCode, vin_info: VinInfo, event_id: str = None):
+    def set_target_battery_soc(self, target_soc: TargetBatteryCode, vin_info: VinInfo, charge_current_limit: ChargeCurrentLimitCode = ChargeCurrentLimitCode.C_IGNORE, event_id: str = None):
         chrg_setng_req = OtaChrgSetngReq()
         chrg_setng_req.onBdChrgTrgtSOCReq = target_soc.value
-        chrg_setng_req.altngChrgCrntReq = 4
+        chrg_setng_req.altngChrgCrntReq = charge_current_limit.value
         chrg_setng_req.tboxV2XSpSOCReq = 0
         chrg_setng_req_msg = MessageV30(MessageBodyV30(), chrg_setng_req)
         application_id = '516'
