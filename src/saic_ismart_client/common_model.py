@@ -81,7 +81,7 @@ class ChargeCurrentLimitCode(Enum):
             case ChargeCurrentLimitCode.C_MAX:
                 return "Max"
             case _:
-                raise ValueError(f'Unknown charge current limit code: {limit}')
+                raise ValueError(f'Unknown charge current limit code: {self}')
 
 
 

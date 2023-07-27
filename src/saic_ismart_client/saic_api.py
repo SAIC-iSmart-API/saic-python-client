@@ -639,7 +639,13 @@ class SaicApi:
     def start_charging_with_retry(self, vin_info: VinInfo) -> MessageV30:
         return self.handle_retry(self.start_charging, vin_info)
 
-    def set_target_battery_soc(self, target_soc: TargetBatteryCode, vin_info: VinInfo, charge_current_limit: ChargeCurrentLimitCode = ChargeCurrentLimitCode.C_IGNORE, event_id: str = None):
+    def set_target_battery_soc(
+            self,
+            target_soc: TargetBatteryCode,
+            vin_info: VinInfo,
+            charge_current_limit: ChargeCurrentLimitCode = ChargeCurrentLimitCode.C_IGNORE,
+            event_id: str = None
+    ):
         chrg_setng_req = OtaChrgSetngReq()
         chrg_setng_req.onBdChrgTrgtSOCReq = target_soc.value
         chrg_setng_req.altngChrgCrntReq = charge_current_limit.value
