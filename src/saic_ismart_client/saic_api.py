@@ -11,6 +11,7 @@ import requests as requests
 
 from saic_ismart_client.common_model import AbstractMessage, AbstractMessageBody, Header, MessageBodyV2, MessageV2, \
     ScheduledChargingMode, TargetBatteryCode, ChargeCurrentLimitCode
+from saic_ismart_client.exceptions import SaicApiException
 from saic_ismart_client.ota_v1_1.Message import MessageCoderV11
 from saic_ismart_client.ota_v1_1.data_model import AbortSendMessageReq, AlarmSwitch, AlarmSwitchReq, Message, \
     MessageBodyV11, MessageListReq, MessageListResp, MessageV11, MpAlarmSettingType, MpUserLoggingInReq, \
@@ -21,6 +22,8 @@ from saic_ismart_client.ota_v2_1.data_model import OtaRvcReq, OtaRvcStatus25857,
 from saic_ismart_client.ota_v3_0.Message import MessageBodyV30, MessageCoderV30, MessageV30
 from saic_ismart_client.ota_v3_0.data_model import OtaChrgCtrlReq, OtaChrgCtrlStsResp, OtaChrgHeatReq, \
     OtaChrgHeatResp, OtaChrgMangDataResp, OtaChrgRsvanReq, OtaChrgSetngReq, OtaChrgSetngResp, OtaChrgRsvanResp
+from saic_ismart_client.rest_v2.api import SaicRestV2Api
+from saic_ismart_client.rest_v2.model import TimeZoneEntity
 
 UID_INIT = '0000000000000000000000000000000000000000000000000#'
 AVG_SMS_DELIVERY_TIME = 15
@@ -64,19 +67,15 @@ def convert(message: Message) -> SaicMessage:
                        message.vin)
 
 
-class SaicApiException(Exception):
-    def __init__(self, msg: str, return_code: int = None):
-        if return_code is not None:
-            self.message = f'return code: {return_code}, message: {msg}'
-        else:
-            self.message = msg
-
-    def __str__(self):
-        return self.message
-
-
 class SaicApi:
-    def __init__(self, saic_uri: str, saic_user: str, saic_password: str, relogin_delay: int = None):
+    def __init__(
+            self,
+            saic_uri: str,
+            saic_rest_uri: str,
+            saic_user: str,
+            saic_password: str,
+            relogin_delay: int = None
+    ):
         self.saic_uri = saic_uri
         self.saic_user = saic_user
         self.saic_password = saic_password
@@ -87,6 +86,7 @@ class SaicApi:
         self.message_v1_1_coder = MessageCoderV11()
         self.message_V2_1_coder = MessageCoderV21()
         self.message_V3_0_coder = MessageCoderV30()
+        self.rest_v2_api = SaicRestV2Api(saic_rest_uri)
         self.cookies = None
         self.uid = ''
         self.token = ''
@@ -844,6 +844,9 @@ class SaicApi:
             if token_expiration.get_timestamp() < datetime.datetime.now():
                 self.login()
         return self.token
+
+    def get_user_timezone(self):
+        return self.rest_v2_api.get_user_timezone(self.get_token(), self.uid)
 
     def handle_error(self, message_body: AbstractMessageBody, iteration: int):
         if iteration > 0:
