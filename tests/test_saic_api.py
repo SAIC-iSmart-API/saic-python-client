@@ -10,7 +10,7 @@ from saic_ismart_client.ota_v1_1.Message import MessageCoderV11
 from saic_ismart_client.ota_v1_1.data_model import MessageV11, MpUserLoggingInRsp, MessageBodyV11, VinInfo, \
     MpAlarmSettingType
 from saic_ismart_client.ota_v2_1.Message import MessageCoderV21
-from saic_ismart_client.ota_v2_1.data_model import OtaRvmVehicleStatusResp25857, RvsPosition, RvsWayPoint,\
+from saic_ismart_client.ota_v2_1.data_model import OtaRvmVehicleStatusResp25857, RvsPosition, RvsWayPoint, \
     RvsWgs84Point, Timestamp4Short, RvsBasicStatus25857, OtaRvcStatus25857
 from saic_ismart_client.ota_v3_0.Message import MessageBodyV30, MessageV30, MessageCoderV30
 from saic_ismart_client.ota_v3_0.data_model import OtaChrgMangDataResp, RvsChargingStatus
@@ -48,29 +48,29 @@ def create_vin_info(vin: str) -> VinInfo:
     vin_info.brand_name = b'brandName'
     vin_info.model_name = b'modelName'
     vin_info.active = True
-    vin_info.model_configuration_json_str = 'name:Tire pressure monitoring system,code:J17,value:1;'\
-                                            + 'name:Regular airbags,code:Q00,value:1;'\
-                                            + 'name:Front-seat airbags,code:Q01,value:1;'\
-                                            + 'name:Airbag switch,code:Q09,value:1;'\
-                                            + 'name:Sun Roof,code:S35,value:0;'\
-                                            + 'name:Remote control,code:S61,value:1;'\
-                                            + 'name:Air conditioning,code:T11,value:1;'\
-                                            + 'name:Electric Power Steering,code:EPS,value:1;'\
-                                            + 'name:Security alert,code:SA64,value:0111110000000000001000000100101000000010100000000000000000000110;'\
-                                            + 'name:Bonnut Status,code:BONNUT,value:1;'\
-                                            + 'name:Door Status,code:DOOR,value:1111;'\
-                                            + 'name:Boot Status,code:BOOT,value:1;'\
-                                            + 'name:Engine Status,code:ENGINE,value:1;'\
-                                            + 'name:Electric Vehicle,code:EV,value:0;'\
-                                            + 'name:HeatedSeat,code:HeatedSeat,value:0;'\
-                                            + 'name:Key Position,code:KEYPOS,value:1;'\
-                                            + 'name:Energy state,code:ENERGY,value:0;'\
-                                            + 'name:Battery Voltage,code:BATTERY,value:1;'\
-                                            + 'name:Interior Temperature,code:INTEMP,value:1;'\
-                                            + 'name:Exterior Temperature,code:EXTEMP,value:1;'\
-                                            + 'name:Window Status,code:WINDOW,value:0000;'\
-                                            + 'name:Left-Right Driving,code:LRD,value:0;'\
-                                            + 'name:Bluetooth Key,code:BTKEY,value:0;'\
+    vin_info.model_configuration_json_str = 'name:Tire pressure monitoring system,code:J17,value:1;' \
+                                            + 'name:Regular airbags,code:Q00,value:1;' \
+                                            + 'name:Front-seat airbags,code:Q01,value:1;' \
+                                            + 'name:Airbag switch,code:Q09,value:1;' \
+                                            + 'name:Sun Roof,code:S35,value:0;' \
+                                            + 'name:Remote control,code:S61,value:1;' \
+                                            + 'name:Air conditioning,code:T11,value:1;' \
+                                            + 'name:Electric Power Steering,code:EPS,value:1;' \
+                                            + 'name:Security alert,code:SA64,value:0111110000000000001000000100101000000010100000000000000000000110;' \
+                                            + 'name:Bonnut Status,code:BONNUT,value:1;' \
+                                            + 'name:Door Status,code:DOOR,value:1111;' \
+                                            + 'name:Boot Status,code:BOOT,value:1;' \
+                                            + 'name:Engine Status,code:ENGINE,value:1;' \
+                                            + 'name:Electric Vehicle,code:EV,value:0;' \
+                                            + 'name:HeatedSeat,code:HeatedSeat,value:0;' \
+                                            + 'name:Key Position,code:KEYPOS,value:1;' \
+                                            + 'name:Energy state,code:ENERGY,value:0;' \
+                                            + 'name:Battery Voltage,code:BATTERY,value:1;' \
+                                            + 'name:Interior Temperature,code:INTEMP,value:1;' \
+                                            + 'name:Exterior Temperature,code:EXTEMP,value:1;' \
+                                            + 'name:Window Status,code:WINDOW,value:0000;' \
+                                            + 'name:Left-Right Driving,code:LRD,value:0;' \
+                                            + 'name:Bluetooth Key,code:BTKEY,value:0;' \
                                             + 'name:Battery Type,code:BType,value:2'
     return vin_info
 
@@ -262,7 +262,7 @@ def mock_response(mocked_post, hex_value: str):
 
 class TestSaicApi(TestCase):
     def setUp(self) -> None:
-        self.saic_api = SaicApi('https://tap-eu.soimt.com', 'user@home.de', 'secret')
+        self.saic_api = SaicApi('https://tap-eu.soimt.com', 'https://gateway-eu.soimt.com', 'user@home.de', 'secret')
         self.message_coder_v1_1 = MessageCoderV11()
         self.message_coder_v2_1 = MessageCoderV21()
         self.message_coder_v3_0 = MessageCoderV30()
