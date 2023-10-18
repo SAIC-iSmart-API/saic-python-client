@@ -477,11 +477,15 @@ class MessageCoderV2(AbstractMessageCoder):
         dispatcher_message_size = header.dispatcher_message_length - self.header_length
         LOG.debug(f'Dispatcher message bytes: {dispatcher_message_size}')
 
-        if int(netto_message_size) == dispatcher_message_size:
+        # The API sometimes provides a wrong dispatcher_message_length value
+        # Normally the body size is about 120 bytes
+        # A value below 50 is very unlikely.
+        if dispatcher_message_size > 50:
             dispatcher_message_bytes_to_read = dispatcher_message_size
         else:
             LOG.debug(f'Calculated message size {int(netto_message_size)} does not match '
                       + f'with header size information {dispatcher_message_size}. Using calculated size.')
+            # This will fail if the message contains application data. In this case we cannot tell the body size
             dispatcher_message_bytes_to_read = int(netto_message_size)
 
         dispatcher_message_bytes = buffered_message_bytes.read(dispatcher_message_bytes_to_read)
