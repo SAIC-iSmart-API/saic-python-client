@@ -23,7 +23,6 @@ from saic_ismart_client.ota_v3_0.Message import MessageBodyV30, MessageCoderV30,
 from saic_ismart_client.ota_v3_0.data_model import OtaChrgCtrlReq, OtaChrgCtrlStsResp, OtaChrgHeatReq, \
     OtaChrgHeatResp, OtaChrgMangDataResp, OtaChrgRsvanReq, OtaChrgSetngReq, OtaChrgSetngResp, OtaChrgRsvanResp
 from saic_ismart_client.rest_v2.api import SaicRestV2Api
-from saic_ismart_client.rest_v2.model import TimeZoneEntity
 
 UID_INIT = '0000000000000000000000000000000000000000000000000#'
 AVG_SMS_DELIVERY_TIME = 15

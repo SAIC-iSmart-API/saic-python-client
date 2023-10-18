@@ -1,4 +1,5 @@
 import io
+import logging
 import os
 import pathlib
 import time
@@ -6,6 +7,10 @@ from enum import Enum
 
 import asn1tools
 from asn1tools.compiler import Specification
+
+logging.basicConfig(format='%(asctime)s %(message)s')
+LOG = logging.getLogger(__name__)
+LOG.setLevel(level=os.getenv('LOG_LEVEL', 'INFO').upper())
 
 FIELD_ERROR_MESSAGE = 'errorMessage'
 FIELD_RESULT = 'result'
@@ -163,7 +168,8 @@ class AbstractMessageBody(Asn1Type):
             data[FIELD_APPLICATION_DATA_ENCODING] = self.application_data_encoding
         self.add_optional_field_to_data(data, FIELD_TEST_FLAG, self.test_flag)
         self.add_optional_field_to_data(data, FIELD_RESULT, self.result)
-        self.add_optional_field_to_data(data, FIELD_ERROR_MESSAGE, self.error_message)
+        if self.error_message:
+            data[FIELD_ERROR_MESSAGE] = self.error_message.decode()
 
         return data
 
@@ -454,21 +460,35 @@ class MessageCoderV2(AbstractMessageCoder):
         return result.upper()
 
     def decode_response(self, message: str, decoded_message: MessageV2) -> None:
+        LOG.debug(f'Message length in bytes: {len(message[5:])/2}')
         buffered_message_bytes = io.BytesIO(bytes.fromhex(message[5:]))
 
         header = decoded_message.header
         header_bytes = buffered_message_bytes.read(self.header_length)
         header.protocol_version = int(header_bytes[0])
+        LOG.debug(f'Protocol version: {header.protocol_version}')
         header.dispatcher_message_length = int(header_bytes[1])
+        LOG.debug(f'Dispatcher message length: {header.dispatcher_message_length}')
         header.dispatcher_body_encoding = int(header_bytes[2])
 
         decoded_message.reserved = buffered_message_bytes.read(self.reserved_size)
+        netto_message_size = len(message[5:])/2 - self.header_length - self.reserved_size
+        LOG.debug(f'Message size without header and reserved bytes: {netto_message_size}')
+        dispatcher_message_size = header.dispatcher_message_length - self.header_length
+        LOG.debug(f'Dispatcher message bytes: {dispatcher_message_size}')
 
-        dispatcher_message_bytes = buffered_message_bytes.read(header.dispatcher_message_length - self.header_length)
+        if int(netto_message_size) == dispatcher_message_size:
+            dispatcher_message_bytes_to_read = dispatcher_message_size
+        else:
+            LOG.debug(f'Calculated message size {int(netto_message_size)} does not match '
+                      + f'with header size information {dispatcher_message_size}. Using calculated size.')
+            dispatcher_message_bytes_to_read = int(netto_message_size)
+
+        dispatcher_message_bytes = buffered_message_bytes.read(dispatcher_message_bytes_to_read)
         message_body_dict = self.asn1_tool_uper.decode('MPDispatcherBody', dispatcher_message_bytes)
         message_body = decoded_message.body
         message_body.init_from_dict(message_body_dict)
-        if(
+        if (
             message_body.application_data_length > 0
             and decoded_message.application_data is not None
         ):
