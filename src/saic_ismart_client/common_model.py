@@ -169,7 +169,7 @@ class AbstractMessageBody(Asn1Type):
         self.add_optional_field_to_data(data, FIELD_TEST_FLAG, self.test_flag)
         self.add_optional_field_to_data(data, FIELD_RESULT, self.result)
         if self.error_message:
-            data[FIELD_ERROR_MESSAGE] = self.error_message.decode()
+            data[FIELD_ERROR_MESSAGE] = self.error_message
 
         return data
 
