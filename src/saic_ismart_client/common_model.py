@@ -196,7 +196,7 @@ class AbstractMessageBody(Asn1Type):
         if FIELD_RESULT in data:
             self.result = data.get(FIELD_RESULT)
         if FIELD_ERROR_MESSAGE in data:
-            self.error_message = data.get(FIELD_ERROR_MESSAGE)
+            self.error_message = data.get(FIELD_ERROR_MESSAGE).decode()
 
 
 class MessageBodyV1(AbstractMessageBody):
@@ -338,6 +338,20 @@ class AbstractMessageCoder:
             application_data_bytes = bytes()
         return application_data_bytes
 
+    @staticmethod
+    def validate_dispatcher_message_size(dispatcher_message_size, netto_message_size):
+        # The API sometimes provides a wrong dispatcher_message_length value
+        # Normally the body size is about 120 bytes
+        # A value below 50 is very unlikely.
+        if dispatcher_message_size > 50:
+            dispatcher_message_bytes_to_read = dispatcher_message_size
+        else:
+            LOG.debug(f'Calculated message size {int(netto_message_size)} does not match '
+                      + f'with header size information {dispatcher_message_size}. Using calculated size.')
+            # This will fail if the message contains application data. In this case we cannot tell the body size
+            dispatcher_message_bytes_to_read = int(netto_message_size)
+        return dispatcher_message_bytes_to_read
+
 
 class MessageCoderV1(AbstractMessageCoder):
     def __init__(self, asn_files_dir: str):
@@ -378,16 +392,28 @@ class MessageCoderV1(AbstractMessageCoder):
         return result.upper()
 
     def decode_response(self, message: str, decoded_message: MessageV1) -> None:
+        LOG.debug(f'Message length in bytes: {len(message[5:]) / 2}')
         buffered_message_bytes = io.BytesIO(bytes.fromhex(message[5:]))
 
+        header = decoded_message.header
         header_bytes = buffered_message_bytes.read(self.header_length)
-        decoded_message.header.protocol_version = int(header_bytes[0])
-        decoded_message.header.security_context = int(header_bytes[1])
-        decoded_message.header.dispatcher_message_length = int(header_bytes[2])
-        decoded_message.header.dispatcher_body_encoding = int(header_bytes[3])
+        header.protocol_version = int(header_bytes[0])
+        LOG.debug(f'Protocol version: {header.protocol_version}')
+        header.security_context = int(header_bytes[1])
+        header.dispatcher_message_length = int(header_bytes[2])
+        LOG.debug(f'Dispatcher message length: {header.dispatcher_message_length}')
+        header.dispatcher_body_encoding = int(header_bytes[3])
 
-        dispatcher_message_bytes = buffered_message_bytes.read(
-            decoded_message.header.dispatcher_message_length - self.header_length)
+        netto_message_size = len(message[5:]) / 2 - self.header_length
+        LOG.debug(f'Message size without header: {netto_message_size}')
+
+        dispatcher_message_size = header.dispatcher_message_length -self.header_length
+        LOG.debug(f'Dispatcher message bytes: {dispatcher_message_size}')
+
+        dispatcher_message_bytes_to_read = AbstractMessageCoder.validate_dispatcher_message_size(
+            dispatcher_message_size, netto_message_size)
+
+        dispatcher_message_bytes = buffered_message_bytes.read(dispatcher_message_bytes_to_read)
         message_body = decoded_message.body
         message_body_dict = self.asn1_tool_uper.decode(message_body.asn_type, dispatcher_message_bytes)
         message_body.init_from_dict(message_body_dict)
@@ -477,16 +503,8 @@ class MessageCoderV2(AbstractMessageCoder):
         dispatcher_message_size = header.dispatcher_message_length - self.header_length
         LOG.debug(f'Dispatcher message bytes: {dispatcher_message_size}')
 
-        # The API sometimes provides a wrong dispatcher_message_length value
-        # Normally the body size is about 120 bytes
-        # A value below 50 is very unlikely.
-        if dispatcher_message_size > 50:
-            dispatcher_message_bytes_to_read = dispatcher_message_size
-        else:
-            LOG.debug(f'Calculated message size {int(netto_message_size)} does not match '
-                      + f'with header size information {dispatcher_message_size}. Using calculated size.')
-            # This will fail if the message contains application data. In this case we cannot tell the body size
-            dispatcher_message_bytes_to_read = int(netto_message_size)
+        dispatcher_message_bytes_to_read = AbstractMessageCoder.validate_dispatcher_message_size(
+            dispatcher_message_size, netto_message_size)
 
         dispatcher_message_bytes = buffered_message_bytes.read(dispatcher_message_bytes_to_read)
         message_body_dict = self.asn1_tool_uper.decode('MPDispatcherBody', dispatcher_message_bytes)

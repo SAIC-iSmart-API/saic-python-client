@@ -119,7 +119,7 @@ class SaicApi:
         self.message_v1_1_coder.decode_response(login_response_hex, login_response_message)
         self.publish_json_response(application_id, application_data_protocol_version, login_response_message.get_data())
         if login_response_message.body.error_message is not None:
-            raise SaicApiException(login_response_message.body.error_message.decode(),
+            raise SaicApiException(login_response_message.body.error_message,
                                    login_response_message.body.result)
         else:
             self.uid = login_response_message.body.uid
@@ -164,7 +164,7 @@ class SaicApi:
                                    alarm_switch_response_message.get_data())
 
         if alarm_switch_response_message.body.error_message is not None:
-            raise SaicApiException(alarm_switch_response_message.body.error_message.decode(),
+            raise SaicApiException(alarm_switch_response_message.body.error_message,
                                    alarm_switch_response_message.body.result)
 
     def get_vehicle_status(self, vin_info: VinInfo, event_id: str = None) -> MessageV2:
@@ -479,7 +479,7 @@ class SaicApi:
 
             retry += 1
         if rsp_msg.body.error_message is not None:
-            raise SaicApiException(rsp_msg.body.error_message.decode(),
+            raise SaicApiException(rsp_msg.body.error_message,
                                    rsp_msg.body.result)
         return rsp_msg
 
@@ -783,7 +783,7 @@ class SaicApi:
         self.message_v1_1_coder.decode_response(message_delete_rsp_hex, message_delete_rsp_msg)
         self.publish_json_response(application_id, application_protocol_version, message_delete_rsp_msg.get_data())
         if message_delete_rsp_msg.body.error_message is not None:
-            raise SaicApiException(message_delete_rsp_msg.body.error_message.decode(),
+            raise SaicApiException(message_delete_rsp_msg.body.error_message,
                                    message_delete_rsp_msg.body.result)
 
     def publish_raw_value(self, key: str, raw: str):
@@ -854,7 +854,7 @@ class SaicApi:
             waiting_time = AVG_SMS_DELIVERY_TIME
         message = f'application ID: {message_body.application_id},' \
                   + f' protocol version: {message_body.application_data_protocol_version},' \
-                  + f' message: {message_body.error_message.decode()}' \
+                  + f' message: {message_body.error_message}' \
                   + f' result code: {message_body.result}'
 
         if message_body.result == 2:
@@ -877,7 +877,7 @@ class SaicApi:
             LOG.warning(message)
         else:
             LOG.error(message)
-            raise SaicApiException(message_body.error_message.decode(), message_body.result)
+            raise SaicApiException(message_body.error_message, message_body.result)
 
 
 def bool_to_bit(flag):
