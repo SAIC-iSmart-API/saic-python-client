@@ -495,7 +495,7 @@ class SaicApi:
             if iteration > max_retries:
                 additional_info = '.'
                 if error_message is not None:
-                    additional_info = f', error message: {error_message.decode()}'
+                    additional_info = f', error message: {error_message}'
                 raise SaicApiException(f'API request failed after {iteration} retries{additional_info}')
             elif error_message is not None:
                 self.handle_error(rsp_msg.body, iteration)
