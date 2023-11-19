@@ -47,7 +47,7 @@ class OtaChrgMangDataResp(ApplicationData):
         self.ccuOffBdChrgrPlugOn: int | None = None  # INTEGER(0..255) OPTIONAL,
         self.chrgngDoorPosSts: int | None = None  # INTEGER(0..255) OPTIONAL,
         self.chrgngDoorOpenCnd: int | None = None  # INTEGER(0..255) OPTIONAL,
-        self.chargeStatus = None  # RvsChargingStatus(1),
+        self.chargeStatus: RvsChargingStatus | None = None  # RvsChargingStatus(1),
         self.bmsAdpPubChrgSttnDspCmd: int | None = None  # INTEGER(0..255)
 
     def get_data(self) -> dict:

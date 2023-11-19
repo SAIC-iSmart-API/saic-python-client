@@ -271,7 +271,8 @@ class VinInfo(Asn1Type):
         self.add_optional_field_to_data(data, FIELD_MODEL_YEAR, self.model_year)
         VinInfo.add_optional_bytes_field_to_data(data, FIELD_COLOR_NAME, self.color_name)
         self.add_optional_field_to_data(data, FIELD_MODEL_CONF_JSON, self.model_configuration_json_str)
-        self.add_optional_field_to_data(data, FIELD_BIND_TIME, self.bind_time)
+        if self.bind_time is not None:
+            data[FIELD_BIND_TIME] = self.bind_time.get_data()
         self.add_optional_field_to_data(data, FIELD_TBOX_SIM_NO, self.tbox_sim_no)
         return data
 
