@@ -132,6 +132,11 @@ class Asn1Type:
         if value is not None:
             data[key] = value
 
+    @staticmethod
+    def add_optional_bytes_field_to_data(data: dict, key: str, value: bytes | None):
+        if value is not None:
+            data[key] = value.decode()
+
 
 class AbstractMessageBody(Asn1Type):
     def __init__(self, asn_type: str):
@@ -407,7 +412,7 @@ class MessageCoderV1(AbstractMessageCoder):
         netto_message_size = len(message[5:]) / 2 - self.header_length
         LOG.debug(f'Message size without header: {netto_message_size}')
 
-        dispatcher_message_size = header.dispatcher_message_length -self.header_length
+        dispatcher_message_size = header.dispatcher_message_length - self.header_length
         LOG.debug(f'Dispatcher message bytes: {dispatcher_message_size}')
 
         dispatcher_message_bytes_to_read = AbstractMessageCoder.validate_dispatcher_message_size(

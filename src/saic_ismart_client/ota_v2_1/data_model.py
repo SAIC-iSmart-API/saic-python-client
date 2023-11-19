@@ -33,7 +33,7 @@ FIELD_VEH_STATUS_REQ_TYPE = 'vehStatusReqType'
 class OtaRvmVehicleStatusReq(ApplicationData):
     def __init__(self):
         super().__init__('OTARVMVehicleStatusReq')
-        self.veh_status_req_type = None
+        self.veh_status_req_type: OtaRvmVehicleStatusReq | None = None
 
     def get_data(self) -> dict:
         return {FIELD_VEH_STATUS_REQ_TYPE: self.veh_status_req_type}
@@ -45,9 +45,9 @@ class OtaRvmVehicleStatusReq(ApplicationData):
 class RvsWgs84Point(Asn1Type):
     def __init__(self):
         super().__init__('RvsWGS84Point')
-        self.latitude = None
-        self.longitude = None
-        self.altitude = None
+        self.latitude: int | None = None
+        self.longitude: int | None = None
+        self.altitude: int | None = None
 
     def get_data(self) -> dict:
         return {
@@ -65,11 +65,11 @@ class RvsWgs84Point(Asn1Type):
 class RvsWayPoint(Asn1Type):
     def __init__(self):
         super().__init__('RvsWayPoint')
-        self.position = None
-        self.heading = None
-        self.speed = None
-        self.hdop = None
-        self.satellites = None
+        self.position: RvsWgs84Point | None = None
+        self.heading: int | None = None
+        self.speed: int | None = None
+        self.hdop: int | None = None
+        self.satellites: int | None = None
 
     def get_data(self) -> dict:
         return {
@@ -95,9 +95,9 @@ class RvsWayPoint(Asn1Type):
 class RvsPosition(Asn1Type):
     def __init__(self):
         super().__init__('RvsPosition')
-        self.way_point = None
-        self.timestamp_4_short = None
-        self.gps_status = None
+        self.way_point: RvsWayPoint | None = None
+        self.timestamp_4_short: Timestamp4Short | None = None
+        self.gps_status:  int | None = None
 
     def get_data(self) -> dict:
         return {
@@ -120,7 +120,7 @@ class RvsPosition(Asn1Type):
 class Timestamp4Short(Asn1Type):
     def __init__(self):
         super().__init__('Timestamp4Short')
-        self.seconds = None
+        self.seconds: int | None = None
         
     def get_data(self) -> dict:
         return {
@@ -134,50 +134,50 @@ class Timestamp4Short(Asn1Type):
 class RvsBasicStatus25857(Asn1Type):
     def __init__(self):
         super().__init__('RvsBasicStatus25857')
-        self.driver_door = None  # BOOLEAN
-        self.passenger_door = None  # BOOLEAN
-        self.rear_left_door = None  # BOOLEAN
-        self.rear_right_door = None  # BOOLEAN
-        self.boot_status = None  # BOOLEAN
-        self.bonnet_status = None  # BOOLEAN
-        self.lock_status = None  # BOOLEAN
-        self.driver_window = None  # BOOLEAN OPTIONAL
-        self.passenger_window = None  # BOOLEAN OPTIONAL,
-        self.rear_left_window = None  # BOOLEAN OPTIONAL,
-        self.rear_right_window = None  # BOOLEAN OPTIONAL,
-        self.sun_roof_status = None  # BOOLEAN OPTIONAL,
-        self.front_right_tyre_pressure = None  # INTEGER(0..255) OPTIONAL,
-        self.front_left_tyre_pressure = None  # INTEGER(0..255) OPTIONAL,
-        self.rear_right_tyre_pressure = None  # INTEGER(0..255) OPTIONAL,
-        self.rear_left_tyre_pressure = None  # INTEGER(0..255) OPTIONAL,
-        self.wheel_tyre_monitor_status = None  # INTEGER(0..255) OPTIONAL,
-        self.side_light_status = None  # BOOLEAN,
-        self.dipped_beam_status = None  # BOOLEAN,
-        self.main_beam_status = None  # BOOLEAN,
-        self.vehicle_alarm_status = None  # INTEGER(0..255) OPTIONAL,
-        self.engine_status = None  # INTEGER(0..255),
-        self.power_mode = None  # INTEGER(0..255),
-        self.last_key_seen = None  # INTEGER(0..65535),
-        self.current_journey_distance = None  # INTEGER(0..65535),
-        self.current_journey_id = None  # INTEGER(0..2147483647),
-        self.interior_temperature = None  # INTEGER(-128..127),
-        self.exterior_temperature = None  # INTEGER(-128..127),
-        self.fuel_level_prc = None  # INTEGER(0..255),
-        self.fuel_range = None  # INTEGER(0..65535),
-        self.remote_climate_status = None  # INTEGER(0..255),
-        self.front_left_seat_heat_level = None  # INTEGER(0..255) OPTIONAL,
-        self.front_right_seat_heat_level = None  # INTEGER(0..255) OPTIONAL,
-        self.can_bus_active = None  # BOOLEAN,
-        self.time_of_last_canbus_activity = None  # INTEGER(0..2147483647),
-        self.clstr_dspd_fuel_lvl_sgmt = None  # INTEGER(0..255),
-        self.mileage = None  # INTEGER(0..2147483647),
-        self.battery_voltage = None  # INTEGER(0..65535),
-        self.hand_brake = None  # BOOLEAN,
-        self.veh_elec_rng_dsp = None  # INTEGER(0..255),
-        self.fuel_range_elec = None  # INTEGER(0..65535) OPTIONAL,
-        self.rmt_htd_rr_wnd_st = None  # INTEGER(0..255),
-        self.extended_data1 = None  # INTEGER(0..2147483647) OPTIONAL,
-        self.extended_data2 = None  # INTEGER(0..2147483647) OPTIONAL
+        self.driver_door: bool | None = None  # BOOLEAN
+        self.passenger_door: bool | None = None  # BOOLEAN
+        self.rear_left_door: bool | None = None  # BOOLEAN
+        self.rear_right_door: bool | None = None  # BOOLEAN
+        self.boot_status: bool | None = None  # BOOLEAN
+        self.bonnet_status: bool | None = None  # BOOLEAN
+        self.lock_status: bool | None = None  # BOOLEAN
+        self.driver_window: bool | None = None  # BOOLEAN OPTIONAL
+        self.passenger_window: bool | None = None  # BOOLEAN OPTIONAL,
+        self.rear_left_window: bool | None = None  # BOOLEAN OPTIONAL,
+        self.rear_right_window: bool | None = None  # BOOLEAN OPTIONAL,
+        self.sun_roof_status: bool | None = None  # BOOLEAN OPTIONAL,
+        self.front_right_tyre_pressure: int | None = None  # INTEGER(0..255) OPTIONAL,
+        self.front_left_tyre_pressure: int | None = None  # INTEGER(0..255) OPTIONAL,
+        self.rear_right_tyre_pressure: int | None = None  # INTEGER(0..255) OPTIONAL,
+        self.rear_left_tyre_pressure: int | None = None  # INTEGER(0..255) OPTIONAL,
+        self.wheel_tyre_monitor_status: int | None = None  # INTEGER(0..255) OPTIONAL,
+        self.side_light_status: bool | None = None  # BOOLEAN,
+        self.dipped_beam_status: bool | None = None  # BOOLEAN,
+        self.main_beam_status: bool | None = None  # BOOLEAN,
+        self.vehicle_alarm_status: int | None = None  # INTEGER(0..255) OPTIONAL,
+        self.engine_status: int | None = None  # INTEGER(0..255),
+        self.power_mode: int | None = None  # INTEGER(0..255),
+        self.last_key_seen: int | None = None  # INTEGER(0..65535),
+        self.current_journey_distance: int | None = None  # INTEGER(0..65535),
+        self.current_journey_id: int | None = None  # INTEGER(0..2147483647),
+        self.interior_temperature: int | None = None  # INTEGER(-128..127),
+        self.exterior_temperature: int | None = None  # INTEGER(-128..127),
+        self.fuel_level_prc: int | None = None  # INTEGER(0..255),
+        self.fuel_range: int | None = None  # INTEGER(0..65535),
+        self.remote_climate_status: int | None = None  # INTEGER(0..255),
+        self.front_left_seat_heat_level: int | None = None  # INTEGER(0..255) OPTIONAL,
+        self.front_right_seat_heat_level: int | None = None  # INTEGER(0..255) OPTIONAL,
+        self.can_bus_active: bool | None = None  # BOOLEAN,
+        self.time_of_last_canbus_activity: int | None = None  # INTEGER(0..2147483647),
+        self.clstr_dspd_fuel_lvl_sgmt: int | None = None  # INTEGER(0..255),
+        self.mileage: int | None = None  # INTEGER(0..2147483647),
+        self.battery_voltage: int | None = None  # INTEGER(0..65535),
+        self.hand_brake: bool | None = None  # BOOLEAN,
+        self.veh_elec_rng_dsp: int | None = None  # INTEGER(0..255),
+        self.fuel_range_elec: int | None = None  # INTEGER(0..65535) OPTIONAL,
+        self.rmt_htd_rr_wnd_st: int | None = None  # INTEGER(0..255),
+        self.extended_data1: int | None = None  # INTEGER(0..2147483647) OPTIONAL,
+        self.extended_data2: int | None = None  # INTEGER(0..2147483647) OPTIONAL
 
     def get_data(self) -> dict:
         data = {
@@ -281,7 +281,7 @@ class RvsBasicStatus25857(Asn1Type):
 class RvsExtStatus(Asn1Type):
     def __init__(self):
         super().__init__('RvsExtStatus')
-        self.vehicle_alerts = []
+        self.vehicle_alerts: [VehicleAlertInfo] = []
 
     def get_data(self) -> dict:
         vehicle_alerts = []
@@ -302,8 +302,8 @@ class RvsExtStatus(Asn1Type):
 class VehicleAlertInfo(Asn1Type):
     def __init__(self):
         super().__init__('VehicleAlertInfo')
-        self.id = None
-        self.value = None
+        self.id: int | None = None
+        self.value: int | None = None
 
     def get_data(self) -> dict:
         return {
@@ -319,8 +319,8 @@ class VehicleAlertInfo(Asn1Type):
 class OtaRvcReq(ApplicationData):
     def __init__(self):
         super().__init__('OTARVCReq')
-        self.rvc_req_type = None
-        self.rvc_params = []
+        self.rvc_req_type: str | None = None
+        self.rvc_params: [RvcReqParam] = []
 
     def get_data(self) -> dict:
         data = {
@@ -334,7 +334,7 @@ class OtaRvcReq(ApplicationData):
         return data
 
     def init_from_dict(self, data: dict):
-        self.rvc_req_type = data.get(FIELD_RVC_REQ_TYPE)
+        self.rvc_req_type = data.get(FIELD_RVC_REQ_TYPE).decode()
         if FIELD_RVC_PARAMS in data:
             rvc_params_list = data.get(FIELD_RVC_PARAMS)
             for item in rvc_params_list:
@@ -346,8 +346,8 @@ class OtaRvcReq(ApplicationData):
 class RvcReqParam(Asn1Type):
     def __init__(self):
         super().__init__('RvcReqParam')
-        self.param_id = None
-        self.param_value = None
+        self.param_id: int | None = None
+        self.param_value: str | None = None
 
     def get_data(self) -> dict:
         return {
@@ -357,16 +357,16 @@ class RvcReqParam(Asn1Type):
 
     def init_from_dict(self, data: dict):
         self.param_id = data.get(FIELD_PARAM_ID)
-        self.param_value = data.get(FIELD_PARAM_VALUE)
+        self.param_value = data.get(FIELD_PARAM_VALUE).decode()
 
 
 class OtaRvmVehicleStatusResp25857(ApplicationData):
     def __init__(self):
         super().__init__('OTARVMVehicleStatusResp25857')
-        self.status_time = None
-        self.gps_position = None
-        self.basic_vehicle_status = None
-        self.extended_vehicle_status = None
+        self.status_time: int | None = None
+        self.gps_position: RvsPosition | None = None
+        self.basic_vehicle_status: RvsBasicStatus25857 | None = None
+        self.extended_vehicle_status: RvsExtStatus | None = None
 
     def get_data(self) -> dict:
         if (
@@ -420,11 +420,11 @@ class OtaRvmVehicleStatusResp25857(ApplicationData):
 class OtaRvcStatus25857(ApplicationData):
     def __init__(self):
         super().__init__('OTARVCStatus25857')
-        self.rvcReqType = None  # OCTET STRING(SIZE(1)),
-        self.rvcReqSts = None  # OCTET STRING(SIZE(1)),
-        self.failureType = None  # INTEGER(0..255) OPTIONAL,
-        self.gpsPosition = None  # RvsPosition(1),
-        self.basicVehicleStatus = None  # RvsBasicStatus25857(1)
+        self.rvcReqType: bytes | None = None  # OCTET STRING(SIZE(1)),
+        self.rvcReqSts: bytes | None = None  # OCTET STRING(SIZE(1)),
+        self.failureType: int | None = None  # INTEGER(0..255) OPTIONAL,
+        self.gpsPosition: RvsPosition | None = None  # RvsPosition(1),
+        self.basicVehicleStatus: RvsBasicStatus25857 | None = None  # RvsBasicStatus25857(1)
 
     def get_data(self) -> dict:
         data = {

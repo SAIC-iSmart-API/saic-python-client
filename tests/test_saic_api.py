@@ -313,5 +313,5 @@ class TestSaicApi(TestCase):
 
         start_ac_rsp_msg = self.saic_api.start_ac(vin_info)
         app_data = cast(OtaRvcStatus25857, start_ac_rsp_msg.application_data)
-        self.assertEqual(app_data.rvcReqType, b'\x06')
-        self.assertEqual(start_ac_rsp_msg.body.ack_required, False)
+        self.assertEqual(b'\x06', app_data.rvcReqType)
+        self.assertEqual(False, start_ac_rsp_msg.body.ack_required)

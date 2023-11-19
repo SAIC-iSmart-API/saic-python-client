@@ -64,9 +64,9 @@ class MessageBodyV11(MessageBodyV1):
 class AlarmSwitchReq(ApplicationData):
     def __init__(self):
         super().__init__('AlarmSwitchReq')
-        self.pin = None
-        self.alarm_switch_list = []
-        self.description = None
+        self.pin: str | None = None  # IA5String(SIZE(32))
+        self.alarm_switch_list: [AlarmSwitch] = []
+        self.description: bytes | None = None  # OCTET STRING(SIZE(0..500)) OPTIONAL
 
     def get_data(self) -> dict:
         alarm_switch_list = []
@@ -76,7 +76,7 @@ class AlarmSwitchReq(ApplicationData):
             FIELD_PIN: self.pin,
             FIELD_ALARM_SWITCH_LIST: alarm_switch_list
         }
-        self.add_optional_field_to_data(data, FIELD_DESCRIPTION, self.description)
+        self.add_optional_bytes_field_to_data(data, FIELD_DESCRIPTION, self.description)
         return data
 
     def init_from_dict(self, data: dict):
@@ -92,9 +92,9 @@ class AlarmSwitchReq(ApplicationData):
 class AlarmSwitch(Asn1Type):
     def __init__(self):
         super().__init__('AlarmSwitch')
-        self.alarm_setting_type = None
-        self.alarm_switch = None
-        self.function_switch = None
+        self.alarm_setting_type: MpAlarmSettingType | None = None
+        self.alarm_switch: bool | None = None
+        self.function_switch: bool | None = None
 
     def get_data(self) -> dict:
         return {
@@ -112,28 +112,28 @@ class AlarmSwitch(Asn1Type):
 class MpUserInfoRsp(Asn1Type):
     def __init__(self):
         super().__init__('MPUserInfoResp')
-        self.nick_name = None
-        self.address = None
-        self.mobile_phone = None
-        self.emergency_name = None
-        self.emergency_mobile = None
-        self.user_photo = None
-        self.gender = None
-        self.birthday = None
-        self.language_type = None
-        self.real_name = None
-        self.the_second_level_country_code = None
-        self.the_third_level_country_code = None
-        self.the_second_level_country_name = None
-        self.the_third_level_country_name = None
-        self.email = None
+        self.nick_name: str | None = None  # OCTET STRING(SIZE(1..50)) OPTIONAL
+        self.address: str | None = None  # OCTET STRING(SIZE(1..50)) OPTIONAL
+        self.mobile_phone: str | None = None  # IA5String(SIZE(1..19)) OPTIONAL
+        self.emergency_name: str | None = None  # OCTET STRING(SIZE(1..50)) OPTIONAL
+        self.emergency_mobile: str | None = None  # IA5String(SIZE(1..19)) OPTIONAL
+        self.user_photo: str | None = None  # IA5String(SIZE(1..128)) OPTIONAL
+        self.gender: str | None = None  # OCTET STRING(SIZE(1)) OPTIONAL
+        self.birthday: str | None = None  # IA5String(SIZE(8)) OPTIONAL
+        self.language_type: int | None = None  # LanguageType OPTIONAL
+        self.real_name: str | None = None  # OCTET STRING(SIZE(1..150)) OPTIONAL
+        self.the_second_level_country_code: str | None = None  # IA5String(SIZE(1..100)) OPTIONAL
+        self.the_third_level_country_code: str | None = None  # IA5String(SIZE(1..100)) OPTIONAL
+        self.the_second_level_country_name: str | None = None  # IA5String(SIZE(1..200)) OPTIONAL
+        self.the_third_level_country_name: str | None = None  # IA5String(SIZE(1..200)) OPTIONAL
+        self.email: str | None = None  # IA5String(SIZE(1..50)) OPTIONAL
 
 
 class MpUserLoggingInReq(ApplicationData):
     def __init__(self):
         super().__init__('MPUserLoggingInReq')
-        self.password = None
-        self.device_id = None
+        self.password: str | None = None  # IA5String(SIZE(6..30))
+        self.device_id: str | None = None  # IA5String(SIZE(1..200)) OPTIONAL
 
     def get_data(self) -> dict:
         data = {FIELD_PASSWORD: self.password}
@@ -149,13 +149,13 @@ class MpUserLoggingInReq(ApplicationData):
 class MpUserLoggingInRsp(ApplicationData):
     def __init__(self):
         super().__init__('MPUserLoggingInResp')
-        self.token = None
-        self.refresh_token = None
-        self.token_expiration = None
-        self.vin_list = []
-        self.user_photo = None
-        self.user_name = None
-        self.language_type = None
+        self.token: str | None = None  # IA5String(SIZE(40)) OPTIONAL
+        self.refresh_token: str | None = None  # IA5String(SIZE(40)) OPTIONAL
+        self.token_expiration: Timestamp | None = None
+        self.vin_list: [VinInfo] = []
+        self.user_photo: str | None = None  # IA5String(SIZE(1..128)) OPTIONAL
+        self.user_name: str | None = None  # IA5String(SIZE(8..12))
+        self.language_type: int | None = None
 
     def get_data(self) -> dict:
         data = {
@@ -195,7 +195,7 @@ class MpUserLoggingInRsp(ApplicationData):
 class Timestamp(Asn1Type):
     def __init__(self):
         super().__init__('Timestamp')
-        self.seconds = -1
+        self.seconds: int = -1  # INTEGER(0..4294967295)
 
     def get_data(self) -> dict:
         return {
@@ -212,50 +212,50 @@ class Timestamp(Asn1Type):
 class AppUpgradeInfoReq(Asn1Type):
     def __init__(self):
         super().__init__('APPUpgradeInfoReq')
-        self.app_type = None
-        self.app_version = None
+        self.app_type = None  # APPType
+        self.app_version: str | None = None  # IA5String(SIZE(1..50))
 
 
 class AppUpgradeInfoRsp(Asn1Type):
     def __init__(self):
         super().__init__('APPUpgradeInfoResp')
-        self.has_new_version = None
-        self.app_version = None
-        self.force_update = None
-        self.update_url = None
-        self.update_info_en = None
-        self.update_info_th = None
+        self.has_new_version: bool | None = None  # BOOLEAN
+        self.app_version: str | None = None  # IA5String(SIZE(1..50)) OPTIONAL
+        self.force_update: bool | None = None  # BOOLEAN OPTIONAL
+        self.update_url: str | None = None  # IA5String(SIZE(1..200)) OPTIONAL
+        self.update_info_en: bytes | None = None  # OCTET STRING(SIZE(1..500)) OPTIONAL
+        self.update_info_th: bytes | None = None  # OCTET STRING(SIZE(1..500)) OPTIONAL
 
 
 class MpAppAttributeRsp(Asn1Type):
     def __init__(self):
         super().__init__('MPAppAttributeResp')
-        self.data_app_attribute = None
+        self.data_app_attribute: str | None = None  # IA5String(SIZE(1..65535)) OPTIONAL
 
 
 class AdvertiseRsp(Asn1Type):
     def __init__(self):
         super().__init__('AdvertiseResp')
-        self.advertise_version = None
-        self.advertises = []
+        self.advertise_version: int | None = None  # INTEGER(0..281474976710655) OPTIONAL
+        self.advertises = []  # SEQUENCE SIZE(0..255) OF Advertise OPTIONAL
 
 
 class VinInfo(Asn1Type):
     def __init__(self):
         super().__init__('VinInfo')
-        self.vin = None
-        self.name = None
-        self.series = None
-        self.brand_name = None
-        self.model_name = None
-        self.vehicle_photo = None
-        self.active = None
-        self.current_vehicle = None
-        self.model_year = None
-        self.color_name = None
-        self.model_configuration_json_str = None
-        self.bind_time = None
-        self.tbox_sim_no = None
+        self.vin: str | None = None  # IA5String(SIZE(17))
+        self.name: bytes | None = None  # OCTET STRING(SIZE(1..128)) OPTIONAL
+        self.series: str | None = None  # IA5String(SIZE(1..10))
+        self.brand_name: bytes | None = None  # OCTET STRING(SIZE(1..24))
+        self.model_name: bytes | None = None  # OCTET STRING(SIZE(1..100))
+        self.vehicle_photo: str | None = None  # IA5String(SIZE(1..128)) OPTIONAL
+        self.active: bool | None = None  # BOOLEAN
+        self.current_vehicle: int | None = None  # INTEGER(0..10) OPTIONAL
+        self.model_year: str | None = None  # IA5String(SIZE(4)) OPTIONAL
+        self.color_name: bytes | None = None  # OCTET STRING(SIZE(1..50)) OPTIONAL
+        self.model_configuration_json_str: str | None = None  # IA5String(SIZE(1..1024)) OPTIONAL
+        self.bind_time: Timestamp | None = None
+        self.tbox_sim_no: str | None = None  # IA5String(SIZE(19)) OPTIONAL
 
     def get_data(self) -> dict:
         data = {
@@ -265,11 +265,11 @@ class VinInfo(Asn1Type):
             FIELD_MODEL_NAME: self.model_name,
             FIELD_ACTIVE: self.active
         }
-        self.add_optional_field_to_data(data, FIELD_NAME, self.name)
+        VinInfo.add_optional_bytes_field_to_data(data, FIELD_NAME, self.name)
         self.add_optional_field_to_data(data, FIELD_VEHICLE_PHOTO, self.vehicle_photo)
         self.add_optional_field_to_data(data, FIELD_CURRENT_VEHICLE, self.current_vehicle)
         self.add_optional_field_to_data(data, FIELD_MODEL_YEAR, self.model_year)
-        self.add_optional_field_to_data(data, FIELD_COLOR_NAME, self.color_name)
+        VinInfo.add_optional_bytes_field_to_data(data, FIELD_COLOR_NAME, self.color_name)
         self.add_optional_field_to_data(data, FIELD_MODEL_CONF_JSON, self.model_configuration_json_str)
         self.add_optional_field_to_data(data, FIELD_BIND_TIME, self.bind_time)
         self.add_optional_field_to_data(data, FIELD_TBOX_SIM_NO, self.tbox_sim_no)
@@ -277,7 +277,8 @@ class VinInfo(Asn1Type):
 
     def init_from_dict(self, data: dict):
         self.vin = data.get(FIELD_VIN)
-        self.name = data.get(FIELD_NAME)
+        if FIELD_NAME in data:
+            self.name = data.get(FIELD_NAME)
         self.series = data.get(FIELD_SERIES)
         self.brand_name = data.get(FIELD_BRAND_NAME)
         self.model_name = data.get(FIELD_MODEL_NAME)
@@ -285,9 +286,13 @@ class VinInfo(Asn1Type):
         self.active = data.get(FIELD_ACTIVE)
         self.current_vehicle = data.get(FIELD_CURRENT_VEHICLE)
         self.model_year = data.get(FIELD_MODEL_YEAR)
-        self.color_name = data.get(FIELD_COLOR_NAME)
+        if FIELD_COLOR_NAME in data:
+            self.color_name = data.get(FIELD_COLOR_NAME)
         self.model_configuration_json_str = data.get(FIELD_MODEL_CONF_JSON)
-        self.bind_time = data.get(FIELD_BIND_TIME)
+        if FIELD_BIND_TIME in data:
+            timestamp = Timestamp()
+            timestamp.init_from_dict(data.get(FIELD_BIND_TIME))
+            self.bind_time = timestamp
         self.tbox_sim_no = data.get(FIELD_TBOX_SIM_NO)
 
 
@@ -304,8 +309,8 @@ class MpAlarmSettingType(Enum):
 class MessageListReq(ApplicationData):
     def __init__(self):
         super().__init__('MessageListReq')
-        self.start_end_number = None
-        self.message_group = None
+        self.start_end_number: StartEndNumber | None = None
+        self.message_group: str | None = None
 
     def get_data(self) -> dict:
         data = {
@@ -322,9 +327,9 @@ class MessageListReq(ApplicationData):
 class AbortSendMessageReq(ApplicationData):
     def __init__(self):
         super().__init__('AbortSendMessageReq')
-        self.messages = []  # SEQUENCE SIZE(1..256) OF Message OPTIONAL
-        self.message_id = -1  # INTEGER(0..281474976710655) OPTIONAL
-        self.action_type = ''  # IA5String(SIZE(1..20)) OPTIONAL
+        self.messages: [Message] = []  # SEQUENCE SIZE(1..256) OF Message OPTIONAL
+        self.message_id: int = -1  # INTEGER(0..281474976710655) OPTIONAL
+        self.action_type: str | None = None  # IA5String(SIZE(1..20)) OPTIONAL
 
     def get_data(self) -> dict:
         data = {}
@@ -335,7 +340,7 @@ class AbortSendMessageReq(ApplicationData):
             data[FIELD_MESSAGES] = message_list
         if self.message_id != -1:
             data[FIELD_MESSAGE_ID] = self.message_id
-        if len(self.action_type) > 0:
+        if self.action_type:
             data[FIELD_ACTION_TYPE] = self.action_type
         return data
 
@@ -354,21 +359,21 @@ class AbortSendMessageReq(ApplicationData):
 class Message(Asn1Type):
     def __init__(self):
         super().__init__('Message')
-        self.message_id = None
-        self.message_type = None
-        self.title = None
-        self.message_time = None
-        self.sender = None
-        self.content_id_list = None
-        self.content = None
-        self.read_status = None
-        self.vin = None
+        self.message_id: int | None = None  # INTEGER(0..281474976710655)
+        self.message_type: str | None = None  # IA5String(SIZE(3))
+        self.title: str | None = None  # OCTET STRING(SIZE(1..128))
+        self.message_time: Timestamp | None = None
+        self.sender: str | None = None  # OCTET STRING(SIZE(1..64))
+        self.content_id_list: [ContentId] = []
+        self.content: str | None = None  # OCTET STRING(SIZE(1..2048)) OPTIONAL
+        self.read_status: int | None = None  # INTEGER(-128..128) OPTIONAL
+        self.vin: str | None = None  # IA5String(SIZE(17)) OPTIONAL
 
     def get_data(self) -> dict:
         data = {
             FIELD_MESSAGE_ID: self.message_id,
             FIELD_MESSAGE_TYPE: self.message_type,
-            FIELD_TITLE: self.title.decode(),
+            FIELD_TITLE: self.title,
             FIELD_MESSAGE_TIME: self.message_time.get_data(),
             FIELD_SENDER: self.sender
         }
@@ -385,16 +390,17 @@ class Message(Asn1Type):
     def init_from_dict(self, data: dict):
         self.message_id = data.get(FIELD_MESSAGE_ID)
         self.message_type = data.get(FIELD_MESSAGE_TYPE)
-        self.title = data.get(FIELD_TITLE)
+        self.title = data.get(FIELD_TITLE).decode()
         self.message_time = Timestamp()
         self.message_time.init_from_dict(data.get(FIELD_MESSAGE_TIME))
-        self.sender = data.get(FIELD_SENDER)
+        self.sender = data.get(FIELD_SENDER).decode()
         if FIELD_CONTENT_ID in data:
-            self.content_id_list = []
             for item in data.get(FIELD_CONTENT_ID):
                 content_id = ContentId()
                 content_id.init_from_dict(item)
                 self.content_id_list.append(content_id)
+        if FIELD_CONTENT in data:
+            self.content = data[FIELD_CONTENT].decode()
         self.read_status = data.get(FIELD_READ_STATUS)
         self.vin = data.get(FIELD_VIN)
 
@@ -402,8 +408,8 @@ class Message(Asn1Type):
 class MessageListResp(ApplicationData):
     def __init__(self):
         super().__init__('MessageListResp')
-        self.records_number = 0
-        self.messages = []
+        self.records_number: int = 0  # INTEGER(0..281474976710655)
+        self.messages: [Message] = []
 
     def get_data(self) -> dict:
         messages = []
@@ -431,8 +437,8 @@ class MessageListResp(ApplicationData):
 class StartEndNumber(Asn1Type):
     def __init__(self):
         super().__init__('StartEndNumber')
-        self.start_number = None
-        self.end_number = None
+        self.start_number: int = -1  # INTEGER(0..281474976710655)
+        self.end_number: int = -1  # INTEGER(0..281474976710655)
 
     def get_data(self) -> dict:
         return {
@@ -448,15 +454,20 @@ class StartEndNumber(Asn1Type):
 class ContentId(Asn1Type):
     def __init__(self):
         super().__init__('ContentId')
-        self.content_id = None
+        self.content_id = None  # INTEGER(0..281474976710655)
+        self.description: str | None = None  # OCTET STRING(SIZE(1..255)) OPTIONAL
 
     def get_data(self) -> dict:
-        return {
+        data = {
             FIELD_CONTENT_ID: self.content_id
         }
+        self.add_optional_field_to_data(data, FIELD_DESCRIPTION, self.description)
+        return data
 
     def init_from_dict(self, data: dict):
         self.content_id = data.get(FIELD_CONTENT_ID)
+        if FIELD_DESCRIPTION in data:
+            self.description = data.get(FIELD_DESCRIPTION).decode()
 
 
 class MessageV11(MessageV1):

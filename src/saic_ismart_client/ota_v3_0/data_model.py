@@ -4,51 +4,51 @@ from saic_ismart_client.common_model import ApplicationData, Asn1Type, TargetBat
 class OtaChrgMangDataResp(ApplicationData):
     def __init__(self):
         super().__init__('OTAChrgMangDataResp')
-        self.bmsReserCtrlDspCmd = None  # INTEGER(0..255),
-        self.bmsReserStHourDspCmd = None  # INTEGER(0..255),
-        self.bmsReserStMintueDspCmd = None  # INTEGER(0..255),
-        self.bmsReserSpHourDspCmd = None  # INTEGER(0..255),
-        self.bmsReserSpMintueDspCmd = None  # INTEGER(0..255),
-        self.bmsOnBdChrgTrgtSOCDspCmd = None  # INTEGER(0..255),
-        self.bms_estd_elec_rng = None  # INTEGER(0..65535),
-        self.bmsAltngChrgCrntDspCmd = None  # INTEGER(0..255),
-        self.bmsChrgCtrlDspCmd = None  # INTEGER(0..255),
-        self.chrgngRmnngTime = None  # INTEGER(0..65535),
-        self.chrgngRmnngTimeV = None  # INTEGER(0..255),
-        self.bmsChrgOtptCrntReq = None  # INTEGER(0..65535),
-        self.bmsChrgOtptCrntReqV = None  # INTEGER(0..255) OPTIONAL,
-        self.bmsPackCrnt = None  # INTEGER(0..65535),
-        self.bmsPackCrntV = None  # INTEGER(0..255) OPTIONAL,
-        self.bmsPackVol = None  # INTEGER(0..65535),
-        self.bmsPackSOCDsp = None  # INTEGER(0..65535),
-        self.bmsChrgSts = None  # INTEGER(0..255),
-        self.bmsChrgSpRsn = None  # INTEGER(0..255),
-        self.clstrElecRngToEPT = None  # INTEGER(0..65535),
-        self.bmsPTCHeatReqDspCmd = None  # INTEGER(0..255),
-        self.bmsPTCHeatResp = None  # INTEGER(0..255) OPTIONAL,
-        self.ccuEleccLckCtrlDspCmd = None  # INTEGER(0..255) OPTIONAL,
-        self.bmsPTCHeatSpRsn = None  # INTEGER(0..255) OPTIONAL,
-        self.bmsDsChrgSpRsn = None  # INTEGER(0..255) OPTIONAL,
-        self.disChrgngRmnngTime = None  # INTEGER(0..65535) OPTIONAL,
-        self.disChrgngRmnngTimeV = None  # INTEGER(0..255) OPTIONAL,
-        self.imcuVehElecRng = None  # INTEGER(0..65535) OPTIONAL,
-        self.imcuVehElecRngV = None  # INTEGER(0..255) OPTIONAL,
-        self.imcuChrgngEstdElecRng = None  # INTEGER(0..65535) OPTIONAL,
-        self.imcuChrgngEstdElecRngV = None  # INTEGER(0..255) OPTIONAL,
-        self.imcuDschrgngEstdElecRng = None  # INTEGER(0..65535) OPTIONAL,
-        self.imcuDschrgngEstdElecRngV = None  # INTEGER(0..255) OPTIONAL,
-        self.chrgngSpdngTime = None  # INTEGER(0..65535) OPTIONAL,
-        self.chrgngSpdngTimeV = None  # INTEGER(0..255) OPTIONAL,
-        self.chrgngAddedElecRng = None  # INTEGER(0..65535) OPTIONAL,
-        self.chrgngAddedElecRngV = None  # INTEGER(0..255) OPTIONAL,
-        self.onBdChrgrAltrCrntInptCrnt = None  # INTEGER(0..255) OPTIONAL,
-        self.onBdChrgrAltrCrntInptVol = None  # INTEGER(0..255) OPTIONAL,
-        self.ccuOnbdChrgrPlugOn = None  # INTEGER(0..255) OPTIONAL,
-        self.ccuOffBdChrgrPlugOn = None  # INTEGER(0..255) OPTIONAL,
-        self.chrgngDoorPosSts = None  # INTEGER(0..255) OPTIONAL,
-        self.chrgngDoorOpenCnd = None  # INTEGER(0..255) OPTIONAL,
+        self.bmsReserCtrlDspCmd: int | None = None  # INTEGER(0..255),
+        self.bmsReserStHourDspCmd: int | None = None  # INTEGER(0..255),
+        self.bmsReserStMintueDspCmd: int | None = None  # INTEGER(0..255),
+        self.bmsReserSpHourDspCmd: int | None = None  # INTEGER(0..255),
+        self.bmsReserSpMintueDspCmd: int | None = None  # INTEGER(0..255),
+        self.bmsOnBdChrgTrgtSOCDspCmd: int | None = None  # INTEGER(0..255),
+        self.bms_estd_elec_rng: int | None = None  # INTEGER(0..65535),
+        self.bmsAltngChrgCrntDspCmd: int | None = None  # INTEGER(0..255),
+        self.bmsChrgCtrlDspCmd: int | None = None  # INTEGER(0..255),
+        self.chrgngRmnngTime: int | None = None  # INTEGER(0..65535),
+        self.chrgngRmnngTimeV: int | None = None  # INTEGER(0..255),
+        self.bmsChrgOtptCrntReq: int | None = None  # INTEGER(0..65535),
+        self.bmsChrgOtptCrntReqV: int | None = None  # INTEGER(0..255) OPTIONAL,
+        self.bmsPackCrnt: int | None = None  # INTEGER(0..65535),
+        self.bmsPackCrntV: int | None = None  # INTEGER(0..255) OPTIONAL,
+        self.bmsPackVol: int | None = None  # INTEGER(0..65535),
+        self.bmsPackSOCDsp: int | None = None  # INTEGER(0..65535),
+        self.bmsChrgSts: int | None = None  # INTEGER(0..255),
+        self.bmsChrgSpRsn: int | None = None  # INTEGER(0..255),
+        self.clstrElecRngToEPT: int | None = None  # INTEGER(0..65535),
+        self.bmsPTCHeatReqDspCmd: int | None = None  # INTEGER(0..255),
+        self.bmsPTCHeatResp: int | None = None  # INTEGER(0..255) OPTIONAL,
+        self.ccuEleccLckCtrlDspCmd: int | None = None  # INTEGER(0..255) OPTIONAL,
+        self.bmsPTCHeatSpRsn: int | None = None  # INTEGER(0..255) OPTIONAL,
+        self.bmsDsChrgSpRsn: int | None = None  # INTEGER(0..255) OPTIONAL,
+        self.disChrgngRmnngTime: int | None = None  # INTEGER(0..65535) OPTIONAL,
+        self.disChrgngRmnngTimeV: int | None = None  # INTEGER(0..255) OPTIONAL,
+        self.imcuVehElecRng: int | None = None  # INTEGER(0..65535) OPTIONAL,
+        self.imcuVehElecRngV: int | None = None  # INTEGER(0..255) OPTIONAL,
+        self.imcuChrgngEstdElecRng: int | None = None  # INTEGER(0..65535) OPTIONAL,
+        self.imcuChrgngEstdElecRngV: int | None = None  # INTEGER(0..255) OPTIONAL,
+        self.imcuDschrgngEstdElecRng: int | None = None  # INTEGER(0..65535) OPTIONAL,
+        self.imcuDschrgngEstdElecRngV: int | None = None  # INTEGER(0..255) OPTIONAL,
+        self.chrgngSpdngTime: int | None = None  # INTEGER(0..65535) OPTIONAL,
+        self.chrgngSpdngTimeV: int | None = None  # INTEGER(0..255) OPTIONAL,
+        self.chrgngAddedElecRng: int | None = None  # INTEGER(0..65535) OPTIONAL,
+        self.chrgngAddedElecRngV: int | None = None  # INTEGER(0..255) OPTIONAL,
+        self.onBdChrgrAltrCrntInptCrnt: int | None = None  # INTEGER(0..255) OPTIONAL,
+        self.onBdChrgrAltrCrntInptVol: int | None = None  # INTEGER(0..255) OPTIONAL,
+        self.ccuOnbdChrgrPlugOn: int | None = None  # INTEGER(0..255) OPTIONAL,
+        self.ccuOffBdChrgrPlugOn: int | None = None  # INTEGER(0..255) OPTIONAL,
+        self.chrgngDoorPosSts: int | None = None  # INTEGER(0..255) OPTIONAL,
+        self.chrgngDoorOpenCnd: int | None = None  # INTEGER(0..255) OPTIONAL,
         self.chargeStatus = None  # RvsChargingStatus(1),
-        self.bmsAdpPubChrgSttnDspCmd = None  # INTEGER(0..255)
+        self.bmsAdpPubChrgSttnDspCmd: int | None = None  # INTEGER(0..255)
 
     def get_data(self) -> dict:
         data = {
@@ -168,31 +168,31 @@ class OtaChrgMangDataResp(ApplicationData):
 class RvsChargingStatus(Asn1Type):
     def __init__(self):
         super().__init__('RvsChargingStatus')
-        self.real_time_power = None  # INTEGER(0..65535),
-        self.charging_gun_state = None  # BOOLEAN,
-        self.fuel_Range_elec = None  # INTEGER(0..65535),
-        self.charging_type = None  # INTEGER(0..255),
-        self.start_time = None  # INTEGER(0..2147483647) OPTIONAL,
-        self.end_time = None  # INTEGER(0..2147483647) OPTIONAL,
-        self.charging_pile_id = None  # IA5String(SIZE(0..64)) OPTIONAL,
-        self.charging_pile_supplier = None  # IA5String(SIZE(0..64)) OPTIONAL,
-        self.working_current = None  # INTEGER(0..65535) OPTIONAL,
-        self.working_voltage = None  # INTEGER(0..65535) OPTIONAL,
-        self.mileage_since_last_charge = None  # INTEGER(0..65535) OPTIONAL,
-        self.power_usage_since_last_charge = None  # INTEGER(0..65535) OPTIONAL,
-        self.mileage_of_day = None  # INTEGER(0..65535) OPTIONAL,
-        self.power_usage_of_day = None  # INTEGER(0..65535) OPTIONAL,
-        self.static_energy_consumption = None  # INTEGER(0..65535) OPTIONAL,
-        self.charging_electricity_phase = None  # INTEGER(0..255) OPTIONAL,
-        self.charging_duration = None  # INTEGER(0..2147483647) OPTIONAL,
-        self.last_charge_ending_power = None  # INTEGER(0..65535) OPTIONAL,
-        self.total_battery_capacity = None  # INTEGER(0..65535) OPTIONAL,
-        self.fota_lowest_voltage = None  # INTEGER(0..255) OPTIONAL,
-        self.mileage = None  # INTEGER(0..2147483647),
-        self.extended_data1 = None  # INTEGER(0..2147483647) OPTIONAL,
-        self.extended_data2 = None  # INTEGER(0..2147483647) OPTIONAL,
-        self.extended_data3 = None  # IA5String(SIZE(0..1024)) OPTIONAL,
-        self.extended_data4 = None  # IA5String(SIZE(0..1024)) OPTIONAL
+        self.real_time_power: int | None = None  # INTEGER(0..65535),
+        self.charging_gun_state: bool | None = None  # BOOLEAN,
+        self.fuel_Range_elec: int | None = None  # INTEGER(0..65535),
+        self.charging_type: int | None = None  # INTEGER(0..255),
+        self.start_time: int | None = None  # INTEGER(0..2147483647) OPTIONAL,
+        self.end_time: int | None = None  # INTEGER(0..2147483647) OPTIONAL,
+        self.charging_pile_id: str | None = None  # IA5String(SIZE(0..64)) OPTIONAL,
+        self.charging_pile_supplier: str | None = None  # IA5String(SIZE(0..64)) OPTIONAL,
+        self.working_current: int | None = None  # INTEGER(0..65535) OPTIONAL,
+        self.working_voltage: int | None = None  # INTEGER(0..65535) OPTIONAL,
+        self.mileage_since_last_charge: int | None = None  # INTEGER(0..65535) OPTIONAL,
+        self.power_usage_since_last_charge: int | None = None  # INTEGER(0..65535) OPTIONAL,
+        self.mileage_of_day: int | None = None  # INTEGER(0..65535) OPTIONAL,
+        self.power_usage_of_day: int | None = None  # INTEGER(0..65535) OPTIONAL,
+        self.static_energy_consumption: int | None = None  # INTEGER(0..65535) OPTIONAL,
+        self.charging_electricity_phase: int | None = None  # INTEGER(0..255) OPTIONAL,
+        self.charging_duration: int | None = None  # INTEGER(0..2147483647) OPTIONAL,
+        self.last_charge_ending_power: int | None = None  # INTEGER(0..65535) OPTIONAL,
+        self.total_battery_capacity: int | None = None  # INTEGER(0..65535) OPTIONAL,
+        self.fota_lowest_voltage: int | None = None  # INTEGER(0..255) OPTIONAL,
+        self.mileage: int | None = None  # INTEGER(0..2147483647),
+        self.extended_data1: int | None = None  # INTEGER(0..2147483647) OPTIONAL,
+        self.extended_data2: int | None = None  # INTEGER(0..2147483647) OPTIONAL,
+        self.extended_data3: str | None = None  # IA5String(SIZE(0..1024)) OPTIONAL,
+        self.extended_data4: str | None = None  # IA5String(SIZE(0..1024)) OPTIONAL
 
     def get_data(self) -> dict:
         data = {
@@ -255,9 +255,9 @@ class RvsChargingStatus(Asn1Type):
 class OtaChrgCtrlReq(ApplicationData):
     def __init__(self):
         super().__init__('OTAChrgCtrlReq')
-        self.chrgCtrlReq = None
-        self.tboxV2XReq = None
-        self.tboxEleccLckCtrlReq = None
+        self.chrgCtrlReq: int | None = None
+        self.tboxV2XReq: int | None = None
+        self.tboxEleccLckCtrlReq: int | None = None
 
     def get_data(self) -> dict:
         data = {
@@ -276,13 +276,13 @@ class OtaChrgCtrlReq(ApplicationData):
 class OtaChrgCtrlStsResp(ApplicationData):
     def __init__(self):
         super().__init__('OTAChrgCtrlStsResp')
-        self.chrgCtrlDspCmd = None
-        self.chrgCtrlResp = None
-        self.bmsDsChrgCtrlDspCmd = None
-        self.bmsDsChrgCtrlResp = None
-        self.ccuEleccLckCtrlDspCmd = None
-        self.ccuEleccLckCtrlResp = None
-        self.rvcReqSts = None
+        self.chrgCtrlDspCmd: int | None = None  # INTEGER(0..255)
+        self.chrgCtrlResp: int | None = None  # INTEGER(0..255)
+        self.bmsDsChrgCtrlDspCmd: int | None = None  # INTEGER(0..255) OPTIONAL
+        self.bmsDsChrgCtrlResp: int | None = None  # INTEGER(0..255) OPTIONAL
+        self.ccuEleccLckCtrlDspCmd: int | None = None  # INTEGER(0..255) OPTIONAL
+        self.ccuEleccLckCtrlResp: int | None = None  # INTEGER(0..255) OPTIONAL
+        self.rvcReqSts: str | None = None  # OCTET STRING(SIZE(1)) OPTIONAL
 
     def get_data(self) -> dict:
         data = {
@@ -296,16 +296,26 @@ class OtaChrgCtrlStsResp(ApplicationData):
         self.add_optional_field_to_data(data, 'rvcReqSts', self.rvcReqSts)
         return data
 
+    def init_from_dict(self, data: dict):
+        self.chrgCtrlDspCmd = data.get('chrgCtrlDspCmd')
+        self.chrgCtrlResp = data.get('chrgCtrlResp')
+        self.bmsDsChrgCtrlDspCmd = data.get('bmsDsChrgCtrlDspCmd')
+        self.bmsDsChrgCtrlResp = data.get('bmsDsChrgCtrlResp')
+        self.ccuEleccLckCtrlDspCmd = data.get('ccuEleccLckCtrlDspCmd')
+        self.ccuEleccLckCtrlResp = data.get('ccuEleccLckCtrlResp')
+        if 'rvcReqSts' in data:
+            self.rvcReqSts = data.get('rvcReqSts').decode()
+
 
 class OtaChrgRsvanReq(ApplicationData):
     def __init__(self):
         super().__init__('OTAChrgRsvanReq')
-        self.rsvanStHour = None
-        self.rsvanStMintu = None
-        self.rsvanSpHour = None
-        self.rsvanSpMintu = None
-        self.tboxReserCtrlReq = None
-        self.tboxAdpPubChrgSttnReq = None
+        self.rsvanStHour: int | None = None  # INTEGER(0..255)
+        self.rsvanStMintu: int | None = None  # INTEGER(0..255)
+        self.rsvanSpHour: int | None = None  # INTEGER(0..255)
+        self.rsvanSpMintu: int | None = None  # INTEGER(0..255)
+        self.tboxReserCtrlReq: int | None = None  # INTEGER(0..255)
+        self.tboxAdpPubChrgSttnReq: int | None = None  # INTEGER(0..255)
 
     def get_data(self) -> dict:
         data = {
@@ -330,18 +340,18 @@ class OtaChrgRsvanReq(ApplicationData):
 class OtaChrgRsvanResp(ApplicationData):
     def __init__(self):
         super().__init__('OTAChrgRsvanResp')
-        self.rvcReqSts = None
-        self.bmsReserCtrlDspCmd = None
-        self.bmsReserStHourDspCmd = None
-        self.bmsReserStMintueDspCmd = None
-        self.bmsReserSpHourDspCmd = None
-        self.bmsReserSpMintueDspCmd = None
-        self.bmsAdpPubChrgSttnDspCmd = None
-        self.bmsReserChrCtrlResp = None
+        self.rvcReqSts: bytes | None = None  # OCTET STRING(SIZE(1))
+        self.bmsReserCtrlDspCmd: int | None = None  # INTEGER(0..255)
+        self.bmsReserStHourDspCmd: int | None = None  # INTEGER(0..255)
+        self.bmsReserStMintueDspCmd: int | None = None  # INTEGER(0..255)
+        self.bmsReserSpHourDspCmd: int | None = None  # INTEGER(0..255)
+        self.bmsReserSpMintueDspCmd: int | None = None  # INTEGER(0..255)
+        self.bmsAdpPubChrgSttnDspCmd: int | None = None  # INTEGER(0..255)
+        self.bmsReserChrCtrlResp: int | None = None  # INTEGER(0..255) OPTIONAL
 
     def get_data(self) -> dict:
         data = {
-            'rvcReqSts': self.rvcReqSts,
+            'rvcReqSts': self.rvcReqSts.decode(),
             'bmsReserCtrlDspCmd': self.bmsReserCtrlDspCmd,
             'bmsReserStHourDspCmd': self.bmsReserStHourDspCmd,
             'bmsReserStMintueDspCmd': self.bmsReserStMintueDspCmd,
@@ -366,9 +376,9 @@ class OtaChrgRsvanResp(ApplicationData):
 class OtaChrgSetngReq(ApplicationData):
     def __init__(self):
         super().__init__('OTAChrgSetngReq')
-        self.onBdChrgTrgtSOCReq = None
-        self.altngChrgCrntReq = None
-        self.tboxV2XSpSOCReq = None
+        self.onBdChrgTrgtSOCReq: int | None = None  # INTEGER(0..255)
+        self.altngChrgCrntReq: int | None = None  # INTEGER(0..255)
+        self.tboxV2XSpSOCReq: int | None = None  # INTEGER(0..255)
 
     def get_data(self) -> dict:
         data = {
@@ -387,19 +397,19 @@ class OtaChrgSetngReq(ApplicationData):
 class OtaChrgSetngResp(ApplicationData):
     def __init__(self):
         super().__init__('OTAChrgSetngResp')
-        self.rvcReqSts = None
-        self.bmsOnBdChrgTrgtSOCDspCmd = None
-        self.bmsChrgTrgtSOCResp = None
-        self.bmsEstdElecRng = None
-        self.bmsAltngChrgCrntDspCmd = None
-        self.bmsPackCrnt = None
-        self.bmsAltngChrgCrntResp = None
-        self.imcuDschrgTrgtSOCDspCmd = None
-        self.imcuDschrgTrgtSOCResp = None
+        self.rvcReqSts: bytes | None = None  # OCTET STRING(SIZE(1))
+        self.bmsOnBdChrgTrgtSOCDspCmd: int | None = None  # INTEGER(0..255)
+        self.bmsChrgTrgtSOCResp: int | None = None  # INTEGER(0..255)
+        self.bmsEstdElecRng: int | None = None  # INTEGER(0..65535)
+        self.bmsAltngChrgCrntDspCmd: int | None = None  # INTEGER(0..255)
+        self.bmsPackCrnt: int | None = None  # INTEGER(0..65535)
+        self.bmsAltngChrgCrntResp: int | None = None  # INTEGER(0..255)
+        self.imcuDschrgTrgtSOCDspCmd: int | None = None  # INTEGER(0..255) OPTIONAL
+        self.imcuDschrgTrgtSOCResp: int | None = None  # INTEGER(0..255) OPTIONAL
 
     def get_data(self) -> dict:
         data = {
-            'rvcReqSts': self.rvcReqSts,
+            'rvcReqSts': self.rvcReqSts.decode(),
             'bmsOnBdChrgTrgtSOCDspCmd': self.bmsOnBdChrgTrgtSOCDspCmd,
             'bmsChrgTrgtSOCResp': self.bmsChrgTrgtSOCResp,
             'bmsEstdElecRng': self.bmsEstdElecRng,
@@ -426,7 +436,7 @@ class OtaChrgSetngResp(ApplicationData):
 class OtaChrgHeatReq(ApplicationData):
     def __init__(self):
         super().__init__('OTAChrgHeatReq')
-        self.ptcHeatReq = None
+        self.ptcHeatReq: int | None = None  # INTEGER(0..255)
 
     def get_data(self) -> dict:
         data = {
@@ -441,15 +451,15 @@ class OtaChrgHeatReq(ApplicationData):
 class OtaChrgHeatResp(ApplicationData):
     def __init__(self):
         super().__init__('OTAChrgHeatResp')
-        self.ptcHeatReqDspCmd = None
-        self.ptcHeatResp = None
-        self.rvcReqSts = None
+        self.ptcHeatReqDspCmd: int | None = None  # INTEGER(0..255)
+        self.ptcHeatResp: int | None = None  # INTEGER(0..255)
+        self.rvcReqSts: bytes | None = None  # OCTET STRING(SIZE(1))
 
     def get_data(self) -> dict:
         data = {
             'ptcHeatReqDspCmd': self.ptcHeatReqDspCmd,
             'ptcHeatResp': self.ptcHeatResp,
-            'rvcReqSts': self.rvcReqSts
+            'rvcReqSts': self.rvcReqSts.decode()
         }
         return data
 
