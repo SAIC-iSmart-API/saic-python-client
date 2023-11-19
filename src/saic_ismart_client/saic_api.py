@@ -58,11 +58,11 @@ class SaicMessage:
 
 def convert(message: Message) -> SaicMessage:
     if message.content is not None:
-        content = message.content.decode()
+        content = message.content
     else:
         content = None
-    return SaicMessage(message.message_id, message.message_type, message.title.decode(),
-                       message.message_time.get_timestamp(), message.sender.decode(), content, message.read_status,
+    return SaicMessage(message.message_id, message.message_type, message.title,
+                       message.message_time.get_timestamp(), message.sender, content, message.read_status,
                        message.vin)
 
 
