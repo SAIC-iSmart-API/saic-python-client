@@ -567,7 +567,7 @@ class SaicApi:
 
     def control_battery_heating(self, enable: bool, vin_info: VinInfo, event_id: str = None) -> MessageV30:
         chrg_heat_req = OtaChrgHeatReq()
-        chrg_heat_req.ptcHeatReq = bool_to_int(enable)
+        chrg_heat_req.ptcHeatReq = 1 if enable else 2
         chrg_heat_req_msg = MessageV30(MessageBodyV30(), chrg_heat_req)
         application_id = '516'
         application_data_protocol_version = 768
