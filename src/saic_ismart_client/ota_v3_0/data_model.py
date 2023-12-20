@@ -154,6 +154,9 @@ class OtaChrgMangDataResp(ApplicationData):
     def get_voltage(self) -> float:
         return self.bmsPackVol * 0.25
 
+    def is_battery_heating(self) -> bool:
+        return self.bmsPTCHeatReqDspCmd == 1
+
     def get_power(self) -> float:
         return self.get_current() * self.get_voltage() / 1000.0
 
