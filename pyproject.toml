@@ -4,14 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "saic_ismart_client"
-version = "1.7.2"
+version = "1.7.3"
 authors = [
     { name = "Thomas Salm", email="saic-python-client@devtom.de"},
 ]
 dependencies = [
     "asn1tools >= 0.166.0",
     "requests >= 2.31.0",
-    "urllib3 >= 2.0.3",
+    "urllib3 >= 2.1.0",
 ]
 description = "SAIC client library (MG iSMART)"
 readme = "README.md"
