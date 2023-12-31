@@ -120,7 +120,8 @@ LanguageType ::= ENUMERATED
   el(13),
   fi(14),
   arabic(15),
-  hindi(16)
+  hindi(16),
+  cs(17)
 }
 Timestamp ::= SEQUENCE
 {
