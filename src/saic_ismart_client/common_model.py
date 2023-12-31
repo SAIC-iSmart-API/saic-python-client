@@ -6,7 +6,10 @@ import time
 from enum import Enum
 
 import asn1tools
+from asn1tools import EncodeError, DecodeError
 from asn1tools.compiler import Specification
+
+from exceptions import SaicApiException
 
 logging.basicConfig(format='%(asctime)s %(message)s')
 LOG = logging.getLogger(__name__)
@@ -338,7 +341,11 @@ class AbstractMessageCoder:
 
     def get_application_data_bytes(self, application_data: ApplicationData, asn1_tool: Specification) -> bytes:
         if application_data is not None:
-            application_data_bytes = asn1_tool.encode(application_data.asn_type, application_data.get_data())
+            try:
+                application_data_bytes = asn1_tool.encode(application_data.asn_type, application_data.get_data())
+            except EncodeError as error:
+                LOG.error('ASN.1 encoding failed', error)
+                raise SaicApiException(error.__str__())
         else:
             application_data_bytes = bytes()
         return application_data_bytes
@@ -371,7 +378,11 @@ class MessageCoderV1(AbstractMessageCoder):
         message_body.application_data_encoding = DataEncodingType.PER_UNALIGNED.value
         message_body.application_data_length = len(application_data_bytes)
 
-        message_body_bytes = self.asn1_tool_uper.encode(message_body.asn_type, message_body.get_data())
+        try:
+            message_body_bytes = self.asn1_tool_uper.encode(message_body.asn_type, message_body.get_data())
+        except EncodeError as error:
+            LOG.error('ASN.1 encoding failed', error)
+            raise SaicApiException(error.__str__())
 
         message_header = message.header
         if message_header.protocol_version is None:
@@ -466,7 +477,11 @@ class MessageCoderV2(AbstractMessageCoder):
         message_body.application_data_encoding = DataEncodingType.PER_UNALIGNED.value
         message_body.application_data_length = len(application_data_bytes)
 
-        message_body_bytes = self.asn1_tool_uper.encode(message_body.asn_type, message_body.get_data())
+        try:
+            message_body_bytes = self.asn1_tool_uper.encode(message_body.asn_type, message_body.get_data())
+        except EncodeError as error:
+            LOG.error('ASN.! encoding failed')
+            raise SaicApiException(error.__str__())
 
         message_header = message.header
         message_header.protocol_version = self.get_protocol_version()
@@ -512,7 +527,11 @@ class MessageCoderV2(AbstractMessageCoder):
             dispatcher_message_size, netto_message_size)
 
         dispatcher_message_bytes = buffered_message_bytes.read(dispatcher_message_bytes_to_read)
-        message_body_dict = self.asn1_tool_uper.decode('MPDispatcherBody', dispatcher_message_bytes)
+        try:
+            message_body_dict = self.asn1_tool_uper.decode('MPDispatcherBody', dispatcher_message_bytes)
+        except DecodeError as error:
+            LOG.error('ASN.1 decoding failed', error)
+            raise SaicApiException(error.__str__())
         message_body = decoded_message.body
         message_body.init_from_dict(message_body_dict)
         if (
@@ -520,8 +539,12 @@ class MessageCoderV2(AbstractMessageCoder):
             and decoded_message.application_data is not None
         ):
             application_data_bytes = buffered_message_bytes.read(message_body.application_data_length)
-            application_data_dict = self.asn1_tool_uper.decode(decoded_message.application_data.asn_type,
-                                                               application_data_bytes)
+            try:
+                application_data_dict = self.asn1_tool_uper.decode(decoded_message.application_data.asn_type,
+                                                                   application_data_bytes)
+            except DecodeError as error:
+                LOG.error('ASN.1 decoding failed', error)
+                raise SaicApiException(error.__str__())
             decoded_message.application_data.init_from_dict(application_data_dict)
         else:
             decoded_message.application_data = None
